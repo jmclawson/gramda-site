@@ -1,0 +1,537 @@
+---
+title: "dplyr: Filtering, Transforming, and Summarizing Tables"
+format:
+  html:
+    code-link: true
+    toc: true
+    theme: [cosmo, custom.scss]
+    highlight-style: "atom-one"
+    number-sections: true
+editor: visual
+---
+
+## Introduction
+
+The `df[1, 2]` and `df$column` notations we discussed last week are powerful ways to interact with two-dimensional objects like tables. But they're also limiting and confusing. The first of these is great for looking at a single value, but doing so drops the context of the rest of the table. The second is great to consider one column of data, but doing so also ignores the other columns.
+
+Both options manage two-dimensional objects by rejecting their two-dimensionality.
+
+Since structured data is one of the fundamental forms of information in data analysis, we need a different way to work with tables.
+
+## Entering the tidyverse
+
+When we use the `library()` function, we're loading up packages to *add something* to "base R" to make it easier or more capable. It's common to load up a few packages before getting started in an analysis because they provide helpful methods or approaches, or they provide built-in shortcuts that we can use. If someone else has already written a function we might need, then there's no need to reinvent the wheel.
+
+The `tidyverse` is a collection of many useful packages designed for interoperability. We've used it before when we visualized data using one of the best packages for that task, `ggplot2`. It is included in the `tidyverse`.
+
+For working with two-dimensional data---tables or "data frames"---we're going to be using `dplyr`, another package that is part of the `tidyverse`. Pronounced something like "d-plier" (think of the mechanic's tool called *pliers*), the `dplyr` package lets us work with tables *as tables*, instead of dealing with them piecemeal.
+
+When using the functionality made possible by one or two of these packages, you might want to load just that package, for example using `library(dplyr)` and `library(ggplot2)`. But if you'll be using more of them, of if you don't remember which package provides the functionality, it's usually fine to use `library(tidyverse)` to load them all at once.
+
+::: callout-note
+## Tangent
+
+Hadley Wickham is one of the creators of all of these packages listed here: `ggplot2`, `dplyr`, and even the `tidyverse`. Because Wickham is from New Zealand, you might notice that British spellings are allowed (but not required) in many parts of the `tidyverse` landscape. Wickham lives in Houston and is currently the Chief Scientist at RStudio, which is soon changing its name to Posit.
+:::
+
+## Getting started
+
+We always start any analysis by loading packages and our data. Here, we'll use the `tidyverse` because it's not a bad habit to start. The `swac` data we're loading is data from football games played by teams in the Southwestern Athletic Conference from 2017 to 2021.
+
+```{r}
+#| label: setup
+#| echo: true
+#| output: false
+library(tidyverse)
+load("data/swac.rda")
+```
+
+```{r}
+#| echo: false
+swac <- ungroup(swac)
+```
+
+Once we have these things set up, it's always a good idea to familiarize ourselves with what's in the data. Typing the name of an object lets us see its dimensions, column names, and the first ten or so lines. For this data, each row represents a game played by a SWAC team; when two SWAC teams play against each other, the game is represented in two rows.
+
+```{r}
+swac
+```
+
+Here, we see the `swac` data set has 547 rows and 10 columns. These columns each provide a specific kind of data, shown under the column name with the angled brackets `<…>`. For instance, the "date" column provides us with data that is all of the `<date>` format, while the "team" column provides us with data that is of the `<chr>` or character / string format. Some other types include `<fct>` for factor / categorical, `<lgl>` for logical, and `<dbl>` meaning double (or numeric data that might have numbers both before and after the decimal point). For some reason, we don't see it here, but we could also expect `<int>` for integer (or numeric data that doesn't show anything after the decimal point).
+
+::: callout-note
+## Tangent
+
+We can also see here that this data is a `tibble`. As far as I can tell, the name derives from a funny way to pronounce "table" in a New Zealand accent. Yes, Wickham is one of the authors of the `tibble` package, which is also part of the `tidyverse`. Just think of a `tibble` as a table or data frame with a couple added conveniences to make things nicer. Because we loaded the entire `tidyverse`, we didn't need also to load the `tibble` package individually.
+:::
+
+## Selecting columns
+
+Sometimes a data set shows us more information than we need. To select only the columns we care about, we can use the `select()` function.
+
+For instance, what if we just want to see the schedule of games, including the date, the team, and their opponent? The `select()` function allows us to limit the output to show just these columns. The first argument in the parentheses should be the name of the object, and the remaining arguments should be the columns we want to keep.
+
+```{r}
+select(swac, date, team, opponent)
+```
+
+As you can see, the data has slimmed down from 10 columns to showing just three. Keep in mind that we haven't changed the initial `swac` object, which still exists. If we want to keep the changes we make, we need to *assign* them to a name using the assignment arrow `<-` .
+
+```{r}
+schedule <- select(swac, date, team, opponent)
+```
+
+Now, that we've saved the step, we can look at the result by typing the name of the object:
+
+```{r}
+schedule
+```
+
+## Filtering by values
+
+Suppose we are diehard Gramblinites, and we really only care about the games that list Grambling in the `team` column. To limit our data by certain values, we can use the `filter()` function along with a logical test.
+
+Most of these logical tests are very simple. For example, we can imagine that `attendance > 3000` is useful to find the games where there are more than 3,000 fans listed in the `attendance` column as having been at the game. Similarly, if we want to show only those games where the team listed in the `team` column lost to their `opponent`, then we can find the rows with `team_score < opponent_score`. And if we want to show only those columns that are played as away games, we can look for `team_venue == "Away"` to match that string.
+
+::: callout-important
+Notice that we use double equals signs `==` for a logical test. The single equals sign is already used to indicate assignment within a function, like `aes(x = team_score)`. It's easy to mistakenly use the single where you need the double---but it's also easy to fix it when you realize your mistake.
+:::
+
+::: callout-tip
+There are lots of different logical tests:
+
+-   `x >= y` tests whether `x` is greater than or equal to `y`
+
+-   `x <= y` tests whether `x` is less than or equal to `y`
+
+-   `x != y` tests whether `x` is not equal to `y`
+
+-   `x %in% y` tests whether `x` is listed among `y`
+
+-   `grepl(y, x)` tests whether the string `y` partially matches the string `x`. This test is a little confusing because the `x` comes after the `y`.
+
+-   `str_detect(x, y)` tests whether the string `y` partially matches the string `x`. (This is the better `tidyverse` way to do `grepl()`, but I only just learned it!) Notice that the `x` comes before the `y` in this version, which makes better sense.
+:::
+
+The first argument in the `filter()` function should be the name of the data set we're looking into. Since we're building from the schedule we made in the previous section, we're going to look at the `schedule` object. The rest of the parentheses are devoted to the logical tests. In our case, we're looking in the team column to try to find Grambling. We might first test for it by building our filter function in this way.
+
+```{r}
+filter(schedule, team == "Grambling")
+```
+
+The resulting tibble doesn't have any rows! In theory this should work. But it doesn't work because "Grambling" is actually coded as something else in our data set. The `str_detect()` function is very useful for building a partial match in any logical search involving character data, letting us look for a needle in a haystack. It expects two arguments: the first is the column in which we're looking (the haystack), and the second is string that we're trying to match (the needle):
+
+```{r}
+filter(schedule, str_detect(team, "Grambling"))
+```
+
+Here, we can see that "Grambling" has actually been coded as "Grambling State" in the data set. Good to know! Now our schedule has been shortened down to the 53 rows we care about.
+
+We can actually group multiple filters into a `filter()` command by separating them with commas. If we just wanted Grambling's 2019 season, we might try to call it like this:
+
+```{r}
+#| eval: false
+filter(schedule, str_detect(team, "Grambling"), season == "2019")
+```
+
+But this won't work at this stage because we already got rid of the `season` column. We'll come back to this problem in the next section.
+
+Don't forget that we haven't actually changed anything. If we'd like to save our work into an object, we have to use the assignment arrow and give it a name:
+
+```{r}
+schedule_gram2019 <- 
+  filter(schedule, 
+         str_detect(team, "Grambling"))
+```
+
+Here I've also introduced some white space by adding a line break after each comma. This makes it easier to follow along.
+
+## Detour: The Pipe `|>`
+
+Over time, we're going to realize that chaining together steps like this can get tedious. If all we ever wanted was Grambling's 2019 schedule, then it seems annoying that we had to save things in an intermediate step called `schedule`, when that step even contained games we don't need. Additionally, because of the order in which we did things, we ran into the problem of being unable to show only the 2019 season, since that column no longer existed in the `schedule` object we were using.
+
+The pipe `|>` is a helpful way to chain steps together so that we don't need to save intermediate steps to new names. We use pipes by describing all the steps to get from the start to the end. For instance, here are the steps need to get to the object named `schedule_gram2019`:
+
+1.  Start from the `swac` object
+2.  Then filter to show only games where "Grambling" is in the `team` column and where the `season` is "2019".
+3.  Then select the `date`, `team`, and `opponent` columns.
+
+Pipes make it easy to show this process:
+
+```{r}
+schedule_gram2019 <- 
+  swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  select(date, team, opponent) 
+```
+
+Notice here that the `|>` command acts like plumbing, piping things so that the first argument of each step---`filter(swac, …)`, `select(filter(swac, …), …)`---is filled in from the step that came before and doesn't need to be called explicitly. We're going to use the pipe from here on out.
+
+::: callout-tip
+Because the pipe is a command that's used a lot, it's not a bad idea to use a keyboard shortcut. One is built-in for RStudio, but you'll need to enable it first:
+
+1.  Go to Global Options
+2.  Go to the "Code" section
+3.  Select the "Use native pipe operator, \|\>"
+4.  Yes, you'll have to restart RStudio.
+
+On Mac, the keyboard shortcut is Command + M. On Windows, I think it's Control + M.
+:::
+
+## Arranging rows
+
+Our schedule is looking pretty good, but we might have noticed that the dates go in reverse chronological order. The `arrange()` function lets us change the order by specific columns:
+
+```{r}
+arrange(schedule_gram2019, date)
+```
+
+By default, `arrange()` will put things in ascending order. If we actually prefer things in descending order, we can add the `desc()` function:
+
+```{r}
+arrange(schedule_gram2019, desc(date))
+```
+
+But this isn't any different from what we saw before, so we're going to skip the `desc()` function and save our newly arranged tibble to the named object:
+
+```{r}
+schedule_gram2019 <- 
+  swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  select(date, team, opponent) |> 
+  arrange(date)
+```
+
+Notice here that I've started back at the beginning and documented each step. Doing so isn't strictly *necessary*. You could, after all, write `schedule_gram2019 <- arrange(schedule_gram2019, date)`. But saving intermediately isn't needed when we can just go back to our old code to add a step.
+
+::: callout-tip
+Everybody builds up their data transformations one step at a time. It's okay to go back and edit code to add more to it.
+
+To figure out how to get where you'd like to go, first break things down into pieces. Once you get one step working the way it should, then your next task is to figure out the next step. In this way, you earn yourself lots of little victories along the way---and a giant victory at the end!
+:::
+
+## Changing the data set with mutations
+
+Our schedule from 2019 is looking pretty good, but we might also want to see whether Grambling won each game or lost it. Our original data set doesn't include a column indicating whether a game was won or lost, but we can decipher this data by looking at other columns: If the `team_score` is higher than the `opponent_score`, then the `team` won.
+
+We can use the `mutate()` function to add a column to the data set. Check out line 5 below---and also notice that we had to add our new column into the `select()` function on line 6:
+
+```{r}
+#| code-line-numbers: true
+schedule_gram2019 <- 
+  swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score) |> 
+  select(date, team, opponent, win) |> 
+  arrange(date)
+```
+
+And then we can see the results here:
+
+```{r}
+schedule_gram2019
+```
+
+We used a logical test for our "win" column, comparing two columns to see if one was bigger than the other, but we might as easily have used math to find the difference between them. Here, we create a "pointrange" column to characterize each win or loss, with 0 indicating a tie, positive numbers indicating a Grambling win, and negative numbers indicating a Grambling loss:
+
+```{r}
+swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  select(date, team, opponent, win, pointrange) |> 
+  arrange(date)
+```
+
+## Summarizing data
+
+After all this, we've done a lot to make our data useful. By filtering the data set to Grambling games in 2019, and by selecting only a small number of columns we're interested in, we've made the data set easier to think about. Additionally, by changing the table to add a couple columns, we've simultaneously been able to add value, making it easier to see which games Grambling won or lost, and by how much.
+
+Even with this smaller data set, showing 11 rows instead of the 547 rows in the original, we might still imagine making our lives easier. For instance, we could easily count the number of games Grambling won---but we're humans who make mistakes and who can sometimes be lazy. Why can't we make the computer do the counting?
+
+If all we're interested in is a summary of this data set, the `summarize()` function will get us there. It simplifies the set of data down to one row. I'll add it to the end of our workflow, here:
+
+```{r}
+swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  select(date, team, opponent, win, pointrange) |> 
+  arrange(date) |> 
+  summarize(wins = sum(win))
+```
+
+There are three things to notice here:
+
+1.  We can take the `sum()` of a logical vector to add up all the `TRUE` values. Basically, R treates `TRUE` as a value of 1 and `FALSE` as a value of 0. So yes, this means we could also use `mean()` to find a win ratio.
+2.  The `summarize()` command strips out all of the other columns. This means that the `select()` step isn't really necessary. I guess I'm keeping it for now out of a sense of nostalgia.
+3.  The `summarize()` step also leaves just one row. If all we're interested in is a summary of data, this is very useful. Narrowing things down allows us to clearly communicate the answer to a question we might be asking.
+
+When we summarize the data, we might reasonably be interested in more than one column. After all, we added *two* columns with the `mutate()` command, so we probably are curious about two bits of information. Let's add a few more summary statistics in at this stage, so that we can query the wins, the win ratios, and the minimum, average, and maximum point ranges:
+
+```{r}
+swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  select(date, team, opponent, win, pointrange) |> 
+  arrange(date) |> 
+  summarize(wins = sum(win),
+            win_ratio = mean(win),
+            ptrange_min = min(pointrange),
+            ptrange_avg = mean(pointrange),
+            ptrange_max = max(pointrange))
+```
+
+We've just found a wealth of information about Grambling's 2019 season! We see that they won slightly more than half of their games and that they did so with about a 7-point lead on average. We also see that their greatest loss of the season was by 22 points, and their greatest victory was a 40-point show of dominance.
+
+## Grouping by categories to make comparisons
+
+Sometimes we want to find these summary statistics for more than just one team in one season. Sometimes we want to see how Grambling's stats changed from one season to the next.
+
+The `group_by()` function allows us to group the information by one or more categories. The `swac` data set shows games from 2017 to 2021, so using `group_by(season)` will divide it into five virtual groups. Each of these groups corresponds to a single season. Using this function before `summarize()` will let us find the summary statistics for each season. Before it will work, we need to remember to remove `season == "2019"` from our `filter()` step. Additionally, we have to remember that `select()` has limited our columns to remove `season`. I'm going to simplify things by removing both `select()` and `arrange()`.
+
+```{r}
+swac |> 
+  filter(str_detect(team, "Grambling")) |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season) |> 
+  summarize(wins = sum(win),
+            win_ratio = mean(win),
+            ptrange_min = min(pointrange),
+            ptrange_avg = mean(pointrange),
+            ptrange_max = max(pointrange))
+```
+
+These results show that we've simultaneously struck paydirt *and* hit a pothole. The table shows mostly what we want, but it seems that some information is missing in the 2020 season. And since some information is missing, R is telling us that it doesn't want to assume that it can use the rest of the information to do its calculations. Here, we see that `NA` is what R uses to signify that a value is missing.
+
+Since these details are missing from 2020 games because they weren't played---they were cancelled because of the pandemic---we know that the missing details aren't significant to the questions we're asking. We can tell R to ignore the `NA` values and figure things out with the rest of the data. In many functions, adding the argument `na.rm = TRUE` will tell R to ignore the missing values altogether.
+
+```{r}
+swac |> 
+  filter(str_detect(team, "Grambling")) |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE))
+```
+
+These results let us see clearly how Grambling's football team has fared over the years. The 2017 season was clearly their best, in which they won more than 84% of the games they played. With a win ratio of 54.5%, the 2018 and 2019 seasons are a close match with each other. And after a dismal year in 2020, the team began a comeback in 2021, not only winning more games but also improving in their distribution of point ranges.
+
+The `group_by()` function is obviously powerful, but it isn't limited to one group. By adding more columns into the function, it can create ever-complex groupings for us to summarize. Here, for instance, we've changed the filter function to match both "Grambling State" and "Southern", and we're grouping by both `season` and `team`. This allows us to compare the records from both universities over time.
+
+```{r}
+#| message: false
+swac |> 
+  filter(team %in% c("Grambling State", "Southern")) |>
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season, team) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE))
+```
+
+Chaining `group_by()` together with `summarize()` is a powerful way to drill down into a complex data set, making comparisons across different categories. Whereas using the `summarize()` function alone strips out all categories except those by which you're summarizing, using it with `group_by()` ensures that the grouping column is retained at the start of the table.
+
+::: callout-note
+Sometimes when you add a group with `group_by()`, the grouping persists longer than you might expect. For instance, if you group by two or more variables, a single `summarize()` step will remove the last variable grouping but keep the rest.
+
+At the top of our results here in our last step, we can see that the data is still grouped by `season`, where it says `Groups: season [5]`. Adding an empty `ungroup()` step at the end would get things back to normal, without any groups.
+:::
+
+## Going the extra mile
+
+Although not strictly necessary nor in the scope of this lesson, you can make the final table look nicer if you're willing to do a little more work.
+
+### Using `knitr::kable()`
+
+The easiest step you might take is to add one line at the end. The `knitr` package offers a command called `kable()` that will make your table look more like it belongs in your document. Since all we want from the `knitr` package is this one function, we can call the function directly without using a `library()` command by using the double colon notation, `knitr::kable()`.
+
+```{r}
+#| message: false
+swac |> 
+  filter(team %in% c("Grambling State", "Southern")) |>
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season, team) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE)) |> 
+  knitr::kable()
+```
+
+This is a much nicer table already! You can actually do more customizing with `kable()` than I show here, but there's no need to get too far along with it.
+
+### Using `gt`
+
+The `gt` package offers some nice features beyond what we can get with `kable()`. Notice here that I've changed the final line and added one argument for `rowname_col` to make the table a little easier to read. Because the "season" column grouping is still in effect (see the "Note" at the end of the previous section), `gt` adopts these groups automatically.
+
+```{r}
+#| message: false
+swac |> 
+  filter(team %in% c("Grambling State", "Southern")) |>
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season, team) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE)) |> 
+  gt::gt(rowname_col = "team")
+```
+
+Even just this one step looks pretty good. But if you're really driven to stretch the limits, `gt` offers boundless options to make your tables look more polished.
+
+Below, I've added a few more steps, adding a `mutate()`, using `rename()` to change some column names, and drawing on `gt`'s options for advanced customization to show an example of how one might really make things look nice. At each step, I've added a comment in the code using the `#` symbol to explain what's happening. Because all this extra code might seem a little overwhelming, I've hidden it for now so that the first impression you see is the final product, but you can show things by toggling the disclosure arrow labeled "Show or hide the code."
+
+::: {.callout-note appearance="minimal"}
+I *really* don't expect you to learn how to do so much with `gt`. I'm only showing it here so that you can get a sense of where you might start with things if you're interested in learning more.
+:::
+
+```{r}
+#| message: false
+#| code-fold: true
+#| code-summary: "Show or hide the code"
+
+# This time we're loading the gt package because we're going
+# to be using many different functions from it.
+library(gt)
+
+swac |> 
+  
+  # We're starting off in the next line by renaming "Grambling 
+  # State" to just "Grambling". This looks better when compared
+  # against "Southern". This mutate function starts with the
+  # "team" column, then uses str_remove() as a kind of
+  # powerful find-and-replace, finding all text that matches
+  # " State" and removing it.
+  
+  mutate(team = team |> 
+           str_remove(" State")) |> 
+  
+  # From here, things mostly continue as before.
+  
+  filter(team %in% c("Grambling", "Southern")) |>
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season, team) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE)) |>
+  
+  # We're renaming the columns here so that they look nicer in
+  # the final table. Surrounding a column name with
+  # backticks allows us to use special characters in it.
+  
+  rename(`#` = wins,
+         ratio = win_ratio,
+         min = ptrange_min,
+         avg = ptrange_avg,
+         max = ptrange_max) |> 
+  
+  # The gt() function prints tables nicely. Here, we're also
+  # defining the "groupname_col" and the "rowname_col"
+  # arguments so that the season and team columns stand out.
+  # The first of these isn't strictly necessary, since the
+  # season column is still grouping the data, but it's
+  # helpful to be explicit.
+  
+  gt(groupname_col = "season",
+     rowname_col = "team") |> 
+  
+  # When using gt, the "fmt_*" functions allow us to format
+  # certain columns and set the number of decimals we want
+  # shown. The fmt_percent() function is especially nice to
+  # say that our "ratio" column should be formatted like a
+  # percentage.
+  
+  fmt_percent(columns = ratio, 
+              decimals = 1) |> 
+  fmt_number(columns = avg,
+             decimals = 1) |> 
+  
+  # In gt, the tab_spanner() function lets us group columns.
+  # The "columns" argument defines the range of columns we
+  # want in each group. (Don't forget to count the "season"
+  # and "team" columns first.)
+  
+  tab_spanner(label = "Wins per season", 
+              columns = 3:4) |> 
+  tab_spanner(label = "Point range", 
+              columns = 5:7) |> 
+  
+  # This last step is where a person might go wild, looking
+  # up options to make each little element look better. I
+  # can't document it all here, but you should be able to
+  # click on "tab_options" and "tab_style" to see the
+  # official help documents. To avoid the perfectionist's
+  # temptation, save this step for last!
+  
+  tab_options(
+    row_group.border.top.width = px(3),
+    row_group.border.top.color = "black",
+    row_group.border.bottom.color = "black",
+    table_body.hlines.color = "white",
+    table.border.top.color = "white",
+    table.border.top.width = px(3),
+    table.border.bottom.color = "white",
+    table.border.bottom.width = px(3),
+    column_labels.border.bottom.color = "black",
+    column_labels.border.bottom.width = px(2)
+    ) |> 
+  tab_style(
+    style = cell_text(
+      color = "black", 
+      weight = "bold"),
+    locations = list(
+      cells_row_groups(),
+      cells_column_spanners())
+    )
+  
+```
+
+This last version of the table offers the clearest direct comparison of football records for these universities and in these years. It took a little time to build, but the final result is polished enough to publish.

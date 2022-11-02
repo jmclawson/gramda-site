@@ -1,0 +1,73 @@
+---
+title: "Introduction to <br> Text Analysis"
+author: "James Clawson"
+format:
+  revealjs:
+    incremental: false
+editor: visual
+---
+
+## Text is unlike other data.
+
+-   Not structured. Not numeric.
+
+-   Meaningfully ordered. Meaningful units.
+
+-   Each kind of data deserves its own approach.
+
+## There are many ways to analyze text.
+
+::: {.panel-tabset style="font-size: 36px !important"}
+### ![](images/list.number@2x.png){style="vertical-align:middle" width="45"} Count
+
+-   Basically, count the words.
+-   "Bag of words" name describes lack of context.
+-   Good to figure out which words are used the most.
+-   (But not every common word is useful.)
+
+### ![](images/books.vertical.fill@2x.png){style="vertical-align:middle" width="41"} Weight
+
+-   Apply a weight for each term by its use in each document.
+-   TF-IDF (Term-frequency---inverse document-frequency)
+-   When you have a big pile of documents, TF-IDF is good to help figure out the things that differentiate them.
+-   (But if documents are similar, these shared traits may be ignored.)
+
+### ![](images/doc.text.magnifyingglass@2x.png){style="vertical-align:middle" width="29"} Look up
+
+-   Look up each word in a "dictionary" / table to find its value.
+
+-   Sentiment analysis
+
+-   Useful for quickly adding value to a messy pile of text, based on the thing you're trying to find.
+
+-   (But the dictionary needs to be made first, and it might suffer in quality.)
+
+### ![](images/mouth.fill@2x.png){style="vertical-align:middle"} NLP
+
+-   Find grammatical purpose for each word.
+
+-   Natural Language Processing
+
+-   NLP can be a helpful tool to distinguish actual meaning in a text or find patterns of style.
+
+-   (But as a machine-learning technique, it's complicated and not perfect.)
+
+### ![](images/text.redaction@2x.png){style="vertical-align:middle" width="38"} Context
+
+-   Find words around each word to try to guess similar meanings.
+-   Word Vector Models and Topic Models
+-   Good for getting a sense of how words are used or what topics are dominant in a document or set of documents.
+-   (As a machine-learning technique, it's complicated and can also take a lot of time to prepare---and the results still require interpretation.)
+:::
+
+## Leftovers
+
+-   "Bag of words" models (e.g., basic counting)
+
+-   Term weighting (e.g., TF-IDF)
+
+-   Dictionary-based analysis (e.g., Sentiment analysis)
+
+-   Natural Language (pre-)Processing (e.g., POS, lemmatizing, dependency parsing)
+
+-   Context-aware analysis (e.g., Word Vector Embeddings)

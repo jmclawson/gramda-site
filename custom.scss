@@ -1,0 +1,51 @@
+/*-- scss:defaults --*/
+$primary: #ECAA00;
+$secondary: #FF0000;
+$notwhite: lighten($primary, 47%);
+$white: lighten($notwhite, 50%);
+
+$body-bg: $notwhite;
+$code-block-bg: mix($notwhite, #efefef, 15%);
+/*-- scss:rules --*/
+div.sourceCode{
+  border-radius: 7px;
+  border: 1px solid rgba(133,136,139,.65);
+}
+
+div.sourceCode:has(+ div.cell-output) {
+  border-radius: 7px 7px 0 0;
+  margin-bottom: 0px;
+}
+
+.cell-output pre code {
+  border: 1px solid #dee2e6;
+  border-left: 5px solid #282a36;
+  border: 1px solid rgba(133,136,139,.65);
+  border-top: 0px;
+  border-radius: 0 0 7px 7px;
+  background-color: lighten(#282a36, 78%);
+  background-color: #fdfdfd;
+}
+
+div.callout {
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+div.callout-header {
+  overflow: hidden;
+}
+
+.page-columns .content {
+  background-color: $white;
+  border: 1px solid rgba(133,136,139,.65);
+  border-radius: 7px;
+  padding: 1em;
+}
+
+.sidebar.toc-left>*, .sidebar.margin-sidebar>* {
+  background-color: $white;
+  padding: 0.5em;
+  border: 1px solid rgba(133,136,139,.65);
+  border-radius: 7px;
+}

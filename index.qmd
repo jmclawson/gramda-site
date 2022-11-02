@@ -1,0 +1,10 @@
+---
+title: "Introduction to Data Analytics"
+format:
+  html:
+    toc: false
+---
+
+## Links
+
+-   [dplyr: Filtering, Transforming, and Summarizing Tables](3-dplyr.html)
