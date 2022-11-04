@@ -7,4 +7,4 @@ format:
 
 ## Links
 
--   [dplyr: Filtering, Transforming, and Summarizing Tables](3-dplyr.html)
+-   [dplyr: Filtering, Transforming, and Summarizing Tables](dplyr.qmd)

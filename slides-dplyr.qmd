@@ -1,0 +1,342 @@
+---
+title: "dplyr: Filtering, Transforming, and Summarizing Tables"
+format:
+  revealjs:
+    code-link: true
+    toc: false
+    theme: [moon, slides-custom.scss]
+    highlight-style: dracula
+    number-sections: false
+    echo: true
+    incremental: true
+    slide-number: true
+    chalkboard: true
+editor: visual
+---
+
+## tidyverse
+
+-   `library()`
+
+-   `library(tidyverse)`
+
+-   `dplyr`
+
+## Getting started
+
+```{r}
+#| echo: true
+#| eval: false
+library(tidyverse)
+load("data/swac.rda")
+swac
+```
+
+```{r}
+#| label: setup
+#| echo: false
+#| output: false
+library(tidyverse)
+load("data/swac.rda")
+swac <- ungroup(swac)
+```
+
+```{r}
+#| echo: false
+swac
+```
+
+# Selecting columns
+
+## the `select()` function
+
+-   `select(`data`,` column names`)`
+
+. . .
+
+```{r}
+select(swac, date, team, opponent)
+```
+
+## don't forget to save!
+
+-   assignment arrow: `<-`
+
+. . .
+
+```{r}
+schedule <- select(swac, date, team, opponent)
+schedule
+```
+
+# Filtering by values
+
+## Logical tests
+
+-   `attendance > 3000`
+
+-   `team_score < opponent_score`.
+
+-   `team_venue == "Away"`
+
+-   etc.
+
+::: columns
+::: {.column width="50%"}
+-   `x >= y`
+
+-   `x <= y`
+
+-   `x != y`
+:::
+
+::: {.column width="50%"}
+-   `x %in% y`
+
+-   `str_detect(x, y)`
+:::
+:::
+
+## the `filter()` function
+
+::: {.nonincremental}
+-  `filter(`data`,` logical test(s)`)`
+
+```{r}
+filter(schedule, team == "Grambling")
+```
+:::
+
+. . .
+
+::: {.nonincremental}
+- oops...
+
+```{r}
+filter(schedule, str_detect(team, "Grambling"))
+```
+:::
+
+## don't forget to save!
+
+```{r}
+schedule_gram2019 <- 
+  filter(schedule, 
+         str_detect(team, "Grambling"))
+```
+
+# Taking a detour with the pipe `|>`
+
+## using the pipe `|>` in practice
+
+stands for "then":
+
+1.  Start from the `swac` object, *then*
+2.  Filter to show only games where "Grambling" is in the `team` column and where the `season` is "2019", *then*
+3.  Select the `date`, `team`, and `opponent` columns.
+
+```{r}
+schedule_gram2019 <- 
+  swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  select(date, team, opponent) 
+```
+
+::: aside
+There's a keyboard shortcut in RStudio! Enable it in Global Options, under Code.
+:::
+
+# Arranging rows
+
+## the `arrange()` function
+
+:::: columns
+:::: {.column width="50%"}
+::: {.nonincremental}
+- put things in ascending order
+
+```{r}
+schedule_gram2019 |> 
+  arrange(date)
+```
+:::
+::::
+
+:::: {.column width="50%"}
+::: {.nonincremental}
+- or reverse the order with `desc()`
+
+```{r}
+schedule_gram2019 |> 
+  arrange(desc(date))
+```
+:::
+::::
+:::: 
+
+# Changing the data set with mutations
+
+## the `mutate()` function
+::: {.nonincremental}
+-   `mutate(`data`, `new_column` = `definition`)`
+
+```{r}
+#| code-line-numbers: "|5"
+schedule_gram2019 <- 
+  swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score) |> 
+  select(date, team, opponent, win) |> 
+  arrange(date)
+```
+:::
+
+. . .
+
+::: {.nonincremental}
+With these results:
+
+```{r}
+schedule_gram2019
+```
+:::
+
+## adding multiple columns at once
+
+```{r}
+#| code-line-numbers: "|4-5"
+#| output-location: fragment
+swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  select(date, team, opponent, win, pointrange) |> 
+  arrange(date)
+```
+
+# Summarizing data {auto-animate=true}
+
+## the `summarize()` function
+
+::: {.nonincremental}
+-   `summarize(`data`, `new_column` = `definition`)`
+:::
+
+. . .
+
+```{r}
+#| code-line-numbers: "|8|"
+#| output-location: fragment
+swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  select(date, team, opponent, win, pointrange) |> 
+  arrange(date) |> 
+  summarize(wins = sum(win))
+```
+. . .
+
+-1- `sum()` of logical vector;<br> 
+-2- `summarize()` strips all other columns<br>
+-3- `summarize()` leaves just one row
+
+
+## Multiple summaries at once
+
+```{r}
+#| code-line-numbers: "8-12|"
+#| output-location: fragment
+swac |> 
+  filter(str_detect(team, "Grambling"),
+         season == "2019") |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  select(date, team, opponent, win, pointrange) |> 
+  arrange(date) |> 
+  summarize(wins = sum(win),
+            win_ratio = mean(win),
+            ptrange_min = min(pointrange),
+            ptrange_avg = mean(pointrange),
+            ptrange_max = max(pointrange))
+```
+
+# Grouping by categories to make comparisons
+
+## the `group_by()` function
+
+- `group_by(`data`, `groups`)`
+- especially good before `summarize()`
+- allows for group-level summaries
+
+## `group_by()` in practice
+
+```{r}
+#| code-line-numbers: "|5|"
+#| output-location: fragment
+swac |> 
+  filter(str_detect(team, "Grambling")) |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season) |> 
+  summarize(wins = sum(win),
+            win_ratio = mean(win),
+            ptrange_min = min(pointrange),
+            ptrange_avg = mean(pointrange),
+            ptrange_max = max(pointrange))
+```
+
+## correcting for missing values
+::: {.nonincremental}
+- `na.rm = TRUE`
+:::
+. . .
+
+```{r}
+#| code-line-numbers: "|7,9,11,13,15|"
+#| output-location: slide
+swac |> 
+  filter(str_detect(team, "Grambling")) |> 
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE))
+```
+
+## grouping by multiple categories
+
+```{r}
+#| code-line-numbers: "|2|2,5|"
+#| message: false
+#| output-location: slide
+swac |> 
+  filter(team %in% c("Grambling State", "Southern")) |>
+  mutate(win = team_score > opponent_score,
+         pointrange = team_score - opponent_score) |> 
+  group_by(season, team) |> 
+  summarize(wins = sum(win, 
+                       na.rm = TRUE),
+            win_ratio = mean(win, 
+                             na.rm = TRUE),
+            ptrange_min = min(pointrange, 
+                              na.rm = TRUE),
+            ptrange_avg = mean(pointrange, 
+                              na.rm = TRUE),
+            ptrange_max = max(pointrange, 
+                              na.rm = TRUE))
+```
+
+

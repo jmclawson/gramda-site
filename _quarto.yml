@@ -9,8 +9,8 @@ website:
         text: Home
       - text: "Slides"
         menu: 
-          - href: intro-to-text-analysis.html
-            text: Intro to Text Analysis
+          - href: slides-dplyr.qmd
+            text: Filtering, Transforming, and Summarizing
       - text: "Course Units"
         menu: 
             - href: intro.qmd
@@ -23,8 +23,8 @@ website:
               text: "4. Importing, Combining, and Exporting Data Sets"
       - about.qmd
   page-footer: "Copyright 2022, James Clawson" 
-  repo-url: https://github.com/jmclawson/gramda-teaching-website
-  repo-actions: [edit, issue]
+  repo-url: https://github.com/jmclawson/gramda-site
+  repo-actions: [source]
 
 format:
   html:

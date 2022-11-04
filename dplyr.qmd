@@ -176,7 +176,7 @@ Because the pipe is a command that's used a lot, it's not a bad idea to use a ke
 3.  Select the "Use native pipe operator, \|\>"
 4.  Yes, you'll have to restart RStudio.
 
-On Mac, the keyboard shortcut is Command + M. On Windows, I think it's Control + M.
+On Mac, the keyboard shortcut is Command + Shift + M. On Windows, I think it's Control + Shift + M.
 :::
 
 ## Arranging rows
