@@ -1,5 +1,5 @@
 ---
-title: "dplyr: Filtering, Transforming, and Summarizing Tables"
+title: "Filtering, Transforming, and Summarizing Tables"
 format:
   html:
     code-link: true
@@ -7,6 +7,7 @@ format:
     theme: [cosmo, custom.scss]
     highlight-style: "atom-one"
     number-sections: true
+    df-print: paged
 editor: visual
 ---
 
@@ -62,7 +63,7 @@ Here, we see the `swac` data set has 547 rows and 10 columns. These columns each
 ::: callout-note
 ## Tangent
 
-We can also see here that this data is a `tibble`. As far as I can tell, the name derives from a funny way to pronounce "table" in a New Zealand accent. Yes, Wickham is one of the authors of the `tibble` package, which is also part of the `tidyverse`. Just think of a `tibble` as a table or data frame with a couple added conveniences to make things nicer. Because we loaded the entire `tidyverse`, we didn't need also to load the `tibble` package individually.
+We might also see here that this data is a `tibble`. Just think of a `tibble` as a table or data frame with a couple added conveniences to make things nicer. Because we loaded the entire `tidyverse`, we didn't need also to load the `tibble` package individually.
 :::
 
 ## Selecting columns
@@ -99,6 +100,8 @@ Notice that we use double equals signs `==` for a logical test. The single equal
 
 ::: callout-tip
 There are lots of different logical tests:
+
+-   `x == y` tests whether `x` is equal to `y`
 
 -   `x >= y` tests whether `x` is greater than or equal to `y`
 
@@ -152,21 +155,20 @@ Over time, we're going to realize that chaining together steps like this can get
 
 The pipe `|>` is a helpful way to chain steps together so that we don't need to save intermediate steps to new names. We use pipes by describing all the steps to get from the start to the end. For instance, here are the steps need to get to the object named `schedule_gram2019`:
 
-1.  Start from the `swac` object
-2.  Then filter to show only games where "Grambling" is in the `team` column and where the `season` is "2019".
-3.  Then select the `date`, `team`, and `opponent` columns.
+1.  Start from the `swac` object, ***then***
+2.  Filter to show only games where "Grambling" is in the `team` column and where the `season` is "2019", ***then***
+3.  Select the `date`, `team`, and `opponent` columns.
 
 Pipes make it easy to show this process:
 
 ```{r}
 schedule_gram2019 <- 
   swac |> 
-  filter(str_detect(team, "Grambling"),
-         season == "2019") |> 
+  filter(str_detect(team, "Grambling"), season == "2019") |> 
   select(date, team, opponent) 
 ```
 
-Notice here that the `|>` command acts like plumbing, piping things so that the first argument of each step---`filter(swac, …)`, `select(filter(swac, …), …)`---is filled in from the step that came before and doesn't need to be called explicitly. We're going to use the pipe from here on out.
+We think of `|>` like "then" when we describe our workflow, but we call it a "pipe" when we talk about our code. Just like a pipe, it provides indoor plumbing. Pipes allow the first argument of each step---`filter(swac, …)`, `select(filter(swac, …), …)`---to be filled in from the step that came before, without needing to be called explicitly. We're going to use the pipe from here on out.
 
 ::: callout-tip
 Because the pipe is a command that's used a lot, it's not a bad idea to use a keyboard shortcut. One is built-in for RStudio, but you'll need to enable it first:
@@ -334,7 +336,7 @@ swac |>
 
 These results let us see clearly how Grambling's football team has fared over the years. The 2017 season was clearly their best, in which they won more than 84% of the games they played. With a win ratio of 54.5%, the 2018 and 2019 seasons are a close match with each other. And after a dismal year in 2020, the team began a comeback in 2021, not only winning more games but also improving in their distribution of point ranges.
 
-The `group_by()` function is obviously powerful, but it isn't limited to one group. By adding more columns into the function, it can create ever-complex groupings for us to summarize. Here, for instance, we've changed the filter function to match both "Grambling State" and "Southern", and we're grouping by both `season` and `team`. This allows us to compare the records from both universities over time.
+The `group_by()` function is obviously powerful, but it isn't limited to one group. By adding more columns into the function, it can create ever-complex groupings for us to summarize. Here, for instance, we've changed the filter function to match both "Grambling State" and "Southern" (using the `%in%` logical test), and we're grouping by both `season` and `team`. This allows us to compare the records from both universities over time.
 
 ```{r}
 #| message: false
@@ -358,9 +360,7 @@ swac |>
 Chaining `group_by()` together with `summarize()` is a powerful way to drill down into a complex data set, making comparisons across different categories. Whereas using the `summarize()` function alone strips out all categories except those by which you're summarizing, using it with `group_by()` ensures that the grouping column is retained at the start of the table.
 
 ::: callout-note
-Sometimes when you add a group with `group_by()`, the grouping persists longer than you might expect. For instance, if you group by two or more variables, a single `summarize()` step will remove the last variable grouping but keep the rest.
-
-At the top of our results here in our last step, we can see that the data is still grouped by `season`, where it says `Groups: season [5]`. Adding an empty `ungroup()` step at the end would get things back to normal, without any groups.
+Sometimes when you add a group with `group_by()`, the grouping persists longer than you might expect. For instance, if you group by two or more variables, a single `summarize()` step will remove the last variable grouping but keep the rest. Adding an empty `ungroup()` step at the end would get things back to normal, without any groups.
 :::
 
 ## Going the extra mile

@@ -18,9 +18,9 @@ website:
             - href: basics.qmd
               text: "2. Basics: Working with R and Quarto"
             - href: dplyr.qmd
-              text: "3. dplyr: Filtering, Transforming, and Summarizing Tables"
+              text: "3. Filtering, Transforming, and Summarizing Tables"
             - href: data.qmd
-              text: "4. Importing, Combining, and Exporting Data Sets"
+              text: "4. Importing, Reshaping, Combining, and Exporting Data Sets"
       - about.qmd
   page-footer: "Copyright 2022, James Clawson" 
   repo-url: https://github.com/jmclawson/gramda-site

@@ -1,5 +1,461 @@
 ---
-title: "Importing, Combining, and Exporting Data Sets"
+title: "Importing, Reshaping, Combining, and Exporting Data Sets"
+format:
+  html:
+    code-link: true
+    toc: true
+    theme: [cosmo, custom.scss]
+    highlight-style: "atom-one"
+    number-sections: true
+    df-print: paged
+editor: visual
 ---
 
-## Description
+## Intro and Getting Started
+
+In the previous lesson, we used functions from the `tidyverse` to make sense of a big data set. With `select()`, we limited columns to those we were most interested in, and with `filter()` we limited rows to those that fit certain criteria. With `mutate()`, we modified the data by defining new columns to add, and with `group_by()` we limited the scope of those definitions to items within a category. Finally, with `summarize()`, we were able to collapse many rows into a single row showing summary statistics. With these tools, we were able to add value to a data set and to gain valuable insight.
+
+We can also add value to a data set by reshaping it and by selectively combining it with other data. In so doing, we'll find the most value in data that might not already exist in R—and we might find it most useful to export it for some other use when we're done. For reshaping data, this lesson introduces `pivot_longer()` and `pivot_wider()`, which we'll combine with the functions from last week for some helpful workflows. For combining data, it introduces `left_join()` and `rbind()` for adding columns and rows, respectively. And for importing and exporting data, it introduces `read_csv()` and `write_csv()`, which make it possible to bring data into and out of R Studio. Along the way, we'll be exposed to some additional tricks, including the `-` (minus sign) notation for column names and functions like `rename()`, `str_remove()`, `relocate()`, and `reorder()`.
+
+Before doing anything, we need to load any packages.
+
+```{r}
+#| label: setup
+#| message: false
+library(tidyverse)
+```
+
+## Reading a CSV file
+
+So far, we've been using data that I've provided for you as an R data file, and we've been loading it with the `load()` function. But most of the time, you'll want to use data you bring into R yourself. For this, we use the `read_csv()` function. Here, for instance, is how you might load the data set of Louisiana votes, which we looked at in unit two. Notice that this CSV file is saved under the directory called "data".
+
+```{r}
+#| message: false
+votes <- read_csv("data/louisiana_votes.csv")
+
+votes
+```
+
+Our data set has 64 rows. Louisiana has 64 parishes, so this isn't surprising. Since every row shows Louisiana as the state, and since Louisiana's counties are actually called "parishes," let's adjust things a little bit. Although we could add further steps here, referring to the `votes` object we created in the previous code chunk and then overwriting it with the assignment arrow `<-`, it's better practice to go back and edit a code chunk to keep things together; this habit saves you some trouble later when you might accidentally run parts of code out of order. For purposes of this exercise, we're going to recreate the full workflow in each code chunk so that we can see how it gets built up.
+
+We'll start by dropping the "state" column. The `select()` function we learned in the previous lesson is most commonly used to choose which columns we *want*, but it can also be used to name the columns we *don't want* if we use a minus sign:
+
+```{r}
+#| message: false
+votes <- read_csv("data/louisiana_votes.csv") |> 
+  select(-state)
+
+votes
+```
+
+Next, we want to rename "county" to "parish". We didn't learn it previously, but `dplyr`'s `rename()` function is pretty straightforward:
+
+```{r}
+#| message: false
+votes <- read_csv("data/louisiana_votes.csv") |> 
+  select(-state) |> 
+  rename(parish = county)
+
+votes
+```
+
+Looking great! The only thing bugging me now is that the word "Parish" is added in every line of the column called "parish." That redundancy isn't necessary. In the previous lesson, we used the `mutate()` function to add new columns, but it can also be used to adjust existing columns. Then we can use the `str_remove()` function to remove the string " Parish" from this data.
+
+::: callout-important
+I'm removing `" Parish"`, with a space, not `"Parish"`. It's honestly up to you whether you keep the space or remove it, but consistency is easier if you set a rule. To do so, think about how you might later search the data set: If we don't remove the space, we won't be able to find the parish called `"Lincoln"` since our data set would call it `"Lincoln "` with an extra space at the end.
+:::
+
+```{r}
+#| message: false
+votes <- read_csv("data/louisiana_votes.csv") |> 
+  select(-state) |> 
+  rename(parish = county) |> 
+  mutate(parish = str_remove(parish, " Parish"))
+  
+votes
+```
+
+Our data has always been useful, but now it's also clean and satisfying.
+
+## Pivoting for summaries
+
+We have a voting breakdown of every parish in Louisiana, which we can use to compare parish political preferences. (Try saying that three times fast!) But we might run into a wall if we try to compare Kanye West's 4 votes in tiny Tensas Parish (population 4,043) against the 619 votes he earned in East Baton Rouge Parish (population 453,301).[^1]
+
+[^1]: According to [U.S. Census estimates for 2021](https://www.census.gov/quickfacts/fact/table/LA/PST045221).
+
+Luckily, our data is rich enough that we can calculate how many people voted for the presidential election.
+
+If you remember the `mutate()` function from the previous lesson---and you should, since we used it in the previous section---your first instinct might be to use it to create a new column called something like "total", adding up the columns called "Donald Trump" and "Joe Biden" and "Jo Jorgensen" and so on. This is a good instinct. But before you try it, take a look at the next code chunk to see how ungainly it is, adding all these names manually.
+
+```{r}
+votes |> 
+  mutate(total = 
+           `Donald Trump` + 
+           `Joe Biden` + 
+           `Jo Jorgensen` + 
+           `Kanye West` + 
+           `Brian Carroll` + 
+           `Jade Simmons` + 
+           `Don Blankenship` + 
+           `President Boddie` + 
+           `Bill Hammons` + 
+           `Tom Hoefling` + 
+           `Brock Pierce` + 
+           `Gloria La Riva` + 
+           `Alyson Kennedy`) |> 
+  relocate(total, .after = parish)
+```
+
+This definitely works. But it's ugly because we have to write out each of the 13 candidates' names---and we can easily imagine the annoyance getting bigger with a larger set of data.
+
+::: callout-note
+Notice that, when a column name uses special characters like spaces, we have to surround it with back ticks, like this: \`column name\`.
+:::
+
+::: callout-tip
+This code chunk also shows the previously unmentioned `relocate()` function, which is useful for moving columns `.before` or `.after` other columns. This step isn't strictly necessary, but it sometimes makes sense to reorder things.
+:::
+
+More clever is to use `pivot_longer()` to change the shape of our data from wide to long, and then calculate a total from that.
+
+Let's focus on Lincoln Parish to understand how this function works.
+
+```{r}
+votes |> 
+  filter(parish == "Lincoln")
+```
+
+With one row and 14 columns, this table is a clear example of data structured as "wide." The `pivot_longer()` function allows us to change the shape from "wide" to "long," so that we'll have a limited number of columns (usually three) and a higher number of rows (here, 13 rows, with one for each candidate). The `pivot_longer()` function expects at least two details:
+
+> `pivot_longer(data, columns)`
+
+The first detail can come from a pipe. The second should list the columns where data can be found. In the example of our Lincoln Parish data, the first column is kind of an identifier. We can use the minus sign trick to say we want to pivot everything except this "parish" column, which we want to keep as a kind of hinge:
+
+```{r}
+votes |> 
+  filter(parish == "Lincoln") |> 
+  pivot_longer(-parish)
+```
+
+What a change! We now have thirteen rows per parish, with one row for each of the candidates. All of the column names have been moved into a column called "name", and their values have been moved into a column called "value". From here, we can use `mutate()` to add a column that takes the sum of the "value" column:
+
+```{r}
+votes |> 
+  filter(parish == "Lincoln") |> 
+  pivot_longer(-parish) |> 
+  mutate(total = sum(value))
+```
+
+From here, one could reshape the data to be wide by using `pivot_wider()`---the long-lost twin of `pivot_longer()`. Because we have columns called "name" and "value", it works without needing any other details inside the parentheses:
+
+```{r}
+votes |> 
+  filter(parish == "Lincoln") |> 
+  pivot_longer(-parish) |> 
+  mutate(total = sum(value)) |> 
+  pivot_wider()
+```
+
+But before we do that, let's apply it to the whole state. Take out the `filter()` so that we aren't just looking at Lincoln Parish:
+
+```{r}
+votes |> 
+  pivot_longer(-parish) |> 
+  mutate(total = sum(value))
+```
+
+Scroll down and check out the value in that "total" column. Oops! Something is definitely wrong. Like last time, we took the sum of the "value" column. But this time, we don't have 13 rows of data---we have 832! That makes sense because we have 64 parishes, and 13 \* 64 = `r 13 * 64`.
+
+In other words, we've found the total number of presidential votes for the entire state, rather than for each parish. This is a perfect situation for using `group_by()`. Let's check out the data in a long format to make sure it does the trick.
+
+```{r}
+votes |> 
+  pivot_longer(-parish) |> 
+  group_by(parish) |> 
+  mutate(total = sum(value))
+```
+
+This looks much better! Now we *could* pivot back to a wider shape, but didn't we want to compare candidate ratios? We want to see things expressed in a common unit across parishes. The numbers of ballots can be skewed by population size, but the percentages of votes each candidate earned allow us to compare vote distributions regardless of size.
+
+To understand this on a smaller scale, let's focus on Acadia Parish and Allen Parish, and let's focus just on Donald Trump's vote shares, since he carried both parishes. The raw numbers told us that Donald Trump got 15,000 more votes in Acadia Parish and Allen Parish. That's a lot of people! But adding a "total" column puts this difference in context, as shown in the first table below. Since Acadia Parish had nearly 18,000 more voters in the presidential election, we are left trying to understand the difference in 15,000 votes. How dissimilar was the vote in these two parishes? To answer that question, we'd like to have percentages, as shown in the second table below:
+
+::: columns
+::: column
+```{r}
+#| echo: false
+library(gt)
+votes |> 
+  pivot_longer(-parish) |> 
+  group_by(parish) |> 
+  mutate(total = sum(value)) |> 
+  pivot_wider() |> 
+  filter(parish %in% c("Acadia", "Allen")) |> 
+  select(parish, total, `Donald Trump`) |> 
+  ungroup() |> 
+  gt() |> 
+  fmt_number(columns=c(total, `Donald Trump`), decimals = 0)
+```
+:::
+
+::: column
+```{r}
+#| echo: false
+library(gt)
+votes |> 
+  pivot_longer(-parish) |> 
+  group_by(parish) |> 
+  mutate(total = sum(value),
+         value = value/total) |> 
+  pivot_wider() |> 
+  filter(parish %in% c("Acadia", "Allen")) |> 
+  select(parish, total, `Donald Trump`) |> 
+  ungroup() |> 
+  gt() |> 
+  fmt_number(columns=total, decimals = 0) |> 
+  fmt_percent(columns = `Donald Trump`, decimals = 1)
+```
+:::
+:::
+
+A 2.3% difference is much more indicative of the difference in voter preference than the huge number 15,000 seems to imply. We find this percentage by pulling out a calculator and dividing the candidate's votes by the number of total votes. But why not work smarter? Since R can be our calculator, let's take the opportunity to convert votes from absolute values to a percentage of the vote total. While we're at it, let's apply it to the whole data set and save it into a new object with a name that reflects that we're showing the percentages of votes:
+
+```{r}
+votes_percentages <- 
+  votes |> 
+  pivot_longer(-parish) |> 
+  group_by(parish) |> 
+  mutate(total = sum(value),
+         value = value / total) |> 
+  pivot_wider()
+
+votes_percentages
+```
+
+With these new numbers, we're able to compare candidates' performance directly across each parish while accounting for total votes.
+
+## Joining columns
+
+So far, we've been looking at voting in a realistic way. Only the voters who vote get counted. But what if we wanted to compare the vote totals to some other number? For instance, mightn't it be handy to see what percentage of a parish's total population voted for a candidate, and what percentage voted in total?
+
+We can use `left_join()` to add more columns of data to our study. To understand how this might work, let's first pull in county-by-county population data from the U.S. Census. As before, we're using `read_csv()` to read the CSV file as a table in R.
+
+```{r}
+#| message: false
+if(!file.exists("data/co-est2021-alldata.csv")) {
+  download.file(
+    url = "https://www2.census.gov/programs-surveys/popest/datasets/2020-2021/counties/totals/co-est2021-alldata.csv",
+    destfile = "data/co-est2021-alldata.csv")
+}
+
+county_pops <- read_csv("data/co-est2021-alldata.csv")
+
+county_pops
+```
+
+::: callout-note
+The first few lines here are a courtesy to the U.S. Census website. Because we're downloading a file from there, and since we might collectively run this code many times, we don't want to keep hitting their server and possibly slow down connections. Those first few lines check to see whether a file exists in our local folder and then downloads it if it doesn't exist. (Remember, a `!` negates any logical test.) In this way, we only visit their website once.
+:::
+
+Taking a look at the data shows us that it's pretty big. We have `r nrow(county_pops)` rows and `r ncol(county_pops)` columns. Since we don't care for anything but Louisiana's data, including just the column for the parish name and the column showing the population estimate for 2020, let's simplify things:
+
+```{r}
+la_pops <- county_pops |> 
+  filter(STNAME == "Louisiana") |> 
+  select(parish = CTYNAME,
+         population = POPESTIMATE2020)
+
+la_pops
+```
+
+Here, we can see that there's an unnecessary row for the state as a total. We can remove it, and we can drop "Parish" from each of the parish names. This second step is important because we need to match values in the "parish" column precisely in both data sets.
+
+::: callout-important
+As before, notice that I'm removing `" Parish"`, including the preceding space, not just `"Parish"`. If you're not careful about removing that space, then the parish names might not match up when you join data sets. After all, the three strings `"Lincoln Parish"` and `"Lincoln "` and `"Lincoln"` are not equal to each other.
+:::
+
+```{r}
+la_pops <- 
+  county_pops |> 
+  filter(STNAME == "Louisiana") |> 
+  select(parish = CTYNAME,
+         population = POPESTIMATE2020) |> 
+  filter(parish != "Louisiana") |> 
+  mutate(parish = str_remove(parish, 
+                             " Parish"))
+
+la_pops
+```
+
+Things look good, and we're ready to add the population column to our original data set using `left_join()`, which expects the following arguments:
+
+> `left_join(x, y, by)`
+
+The `x` argument is the "left" data set. These are the columns we want to appear first, and they should be the ones that have most of our information in them. The `y` argument is the "right" data set. Its columns will appear on the right-hand side when we combine things. When we use `left_join()`, we care about `x` more than `y`. Finally, `by` is where we can define the column names to match between our two data sets. If our data sets have one column that matches in names, then we can skip this part altogether. The message `Joining, by = "parish"` indicates that the function notices the matching column names and is choosing a `by` value automatically.
+
+```{r}
+la_votes_population <- 
+  left_join(votes, la_pops)
+
+la_votes_population
+```
+
+Our data now shows the population of each parish far to the right. We can combine `left_join()` with `pivot_longer()` to recreate our previous table of percentages, only this time calculating the votes each candidate earned as a percentage of a parish's population.
+
+```{r}
+votes_population <- 
+  votes |> 
+  pivot_longer(-parish) |> 
+  left_join(la_pops) |> 
+  mutate(value = value/population) |> 
+  pivot_wider()
+
+votes_population
+```
+
+From this data set, we can easily find the number of voters as a percentage of each parish's population and arrange them by voter turnout:
+
+```{r}
+votes_population |> 
+  select(-population) |> 
+  pivot_longer(-parish) |> 
+  group_by(parish) |> 
+  summarize(voters = sum(value)) |> 
+  arrange(desc(voters))
+```
+
+Impressive turnout, Cameron Parish! Way to get out the vote!
+
+## Binding rows
+
+Let's imagine we had nice summary information for the entire state in a simple, useful row, showing the percentage of statewide population each candidate earned:
+
+```{r}
+#| message: false
+#| code-fold: true
+louisiana_population <- 
+  county_pops |> 
+  filter(STNAME == "Louisiana") |> 
+  select(parish = CTYNAME,
+         population = POPESTIMATE2020) |> 
+  filter(parish == "Louisiana")
+
+votes_statewide <- 
+  votes |> 
+  pivot_longer(-parish) |> 
+  select(-parish) |> 
+  group_by(name) |> 
+  summarize(value = sum(value)) |> 
+  mutate(parish = "Louisiana") |> 
+  left_join(louisiana_population) |> 
+  mutate(value = value/population) |> 
+  # In the next line we *could* preserve the original column order
+  # arrange(desc(value)) |> 
+  pivot_wider()
+```
+
+```{r}
+votes_statewide
+```
+
+Wouldn't it be nice to combine this row of data with our original parish-by-parish breakdown of all votes cast as a percentage of parish population? The `rbind()` function makes it easy to add a row in this way, as long as we have matching column names:
+
+```{r}
+votes_population_la <- rbind(votes_statewide, votes_population)
+
+votes_population_la
+```
+
+Even though columns were ordered differently in our two data sets, they were matched perfectly by their names. The first data set determined the order of columns in the result, and its rows come on top. Here's what it looks like to reverse the order:
+
+```{r}
+votes_population_la <- rbind(votes_population, votes_statewide)
+
+votes_population_la
+```
+
+This second version preserves the column order from `votes_population` and adds the row from `votes_statewide` at the bottom.
+
+## Writing a CSV file
+
+Lastly, we can export data in much the same way that we imported it:
+
+```{r}
+write_csv(votes_population_la, 
+          file = "data/louisiana_votes_pop.csv")
+```
+
+In this way, you can later use your CSV file in other tools, like ArcGIS.
+
+## Plotting the results
+
+Now that our data uses percentage to show a common unit across all parishes, we can make a simple bar chart to visualize a candidate's vote share in each parish. Here, for instance, is a bar chart of Kanye West's vote share in each of the parishes:
+
+```{r}
+votes_percentages |> 
+  ggplot(aes(y = parish, 
+             x = `Kanye West`)) +
+  geom_col()
+```
+The parish names on the left are in alphabetical order starting at the bottom going up. We can reorder these pretty easily with the `reorder()` function. Here, we're reording strings in the the `parish` column by values in the `Kanye West` column:
+
+```{r}
+votes_percentages |> 
+  ggplot(aes(y = reorder(parish, `Kanye West`), 
+             x = `Kanye West`)) +
+  geom_col()
+```
+
+Since we know the total number of votes in each parish, we can also color the bars by parish size. Who knows—it might reveal some trend!
+```{r}
+votes_percentages |> 
+  ggplot(aes(y = reorder(parish, `Kanye West`), 
+             x = `Kanye West`,
+             fill = total)) +
+  geom_col()
+```
+I guess it's kind of revealing that the parishes where Kanye earned the lowest share of votes tended to be smaller parishes, where fewer than 100,000 votes were cast. So we'll keep it.
+
+In the final step, we're going to add a little polish to the chart by adjusting the labels and theme and by making the chart a little taller.
+
+```{r}
+#| fig-height: 7
+
+votes_percentages |> 
+  ggplot(aes(y = reorder(parish, `Kanye West`), 
+             x = `Kanye West`,
+             fill = total)) +
+  geom_col() +
+  
+  # scale_x_continuous() lets me adjust the x-axis. Within
+  # it, "labels" lets me format the number of the axis
+  # labels and setting "expand" to 0 lets me shrink the gap
+  # between labels and bars.
+  scale_x_continuous(
+    labels = scales::label_percent(),
+    expand = c(0,0)) +
+  
+  # scale_fill_continuous() lets me adjust the legend of a
+  # "fill" aesthetic. Within it, "labels" lets me format the
+  # numbers used in the legend.
+  scale_fill_continuous(
+    labels = scales::label_comma()) +
+  
+  # labs() lets me set certain labels for key parts of the
+  # plot. Arguments y and x let me set the y-axis and x-axis
+  # labels, while fill lets me rename the title of the
+  # "fill" legend.
+  labs(
+    y = "Parish",
+    x = "Kanye West's share of the vote",
+    fill = "Total votes cast \nin each parish") + 
+  
+  # I'm not a big fan of that default gray background, so
+  # theme_minimal() lets me choose a different theme.
+  theme_minimal() +
+  
+  # Finally, I don't need the horizontal grid lines in the
+  # background, so I'm removing them.
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
+```
+

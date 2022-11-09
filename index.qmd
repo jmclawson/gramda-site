@@ -7,4 +7,5 @@ format:
 
 ## Links
 
--   [dplyr: Filtering, Transforming, and Summarizing Tables](dplyr.qmd)
+-   [Filtering, Transforming, and Summarizing Tables](dplyr.qmd)
+-   [Importing, Reshaping, Combining, and Exporting](data.qmd)
