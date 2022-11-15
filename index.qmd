@@ -3,9 +3,11 @@ title: "Introduction to Data Analytics"
 format:
   html:
     toc: false
+    number-sections: false
 ---
 
 ## Links
 
--   [Filtering, Transforming, and Summarizing Tables](dplyr.qmd)
--   [Importing, Reshaping, Combining, and Exporting](data.qmd)
+-   [Filtering, Transforming, and Summarizing Tables](filter-transform-summarize.qmd)
+-   [Importing, Pivoting, and Combining Data Sets](import-pivot-join.qmd)
+-   [In-Class Review for Exam 3](exam-review.qmd)

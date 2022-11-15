@@ -19,13 +19,20 @@ div.sourceCode, div.sourceCode:has(+ div.cell-output-display p img){
 }
 
 .cell-output pre code, div.cell-output-display div.pagedtable-wrapper {
-  border: 1px solid #dee2e6;
-  border-left: 5px solid #282a36;
   border: 1px solid rgba(133,136,139,.65);
   border-top: 0px;
   border-radius: 0 0 7px 7px;
   background-color: lighten(#282a36, 78%);
   background-color: #fdfdfd;
+}
+
+div.cell-output:has(+ div.cell-output-display) pre {
+  margin-bottom: 0px;
+}
+
+div.cell-output:has(+ div.cell-output-display) pre code {
+  border-radius: 0;
+  border-bottom: 1px dashed rgba(133,136,139,.65);
 }
 
 div.callout {
