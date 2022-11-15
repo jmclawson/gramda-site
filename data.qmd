@@ -15,7 +15,7 @@ editor: visual
 
 In the previous lesson, we used functions from the `tidyverse` to make sense of a big data set. With `select()`, we limited columns to those we were most interested in, and with `filter()` we limited rows to those that fit certain criteria. With `mutate()`, we modified the data by defining new columns to add, and with `group_by()` we limited the scope of those definitions to items within a category. Finally, with `summarize()`, we were able to collapse many rows into a single row showing summary statistics. With these tools, we were able to add value to a data set and to gain valuable insight.
 
-We can also add value to a data set by reshaping it and by selectively combining it with other data. In so doing, we'll find the most value in data that might not already exist in R—and we might find it most useful to export it for some other use when we're done. For reshaping data, this lesson introduces `pivot_longer()` and `pivot_wider()`, which we'll combine with the functions from last week for some helpful workflows. For combining data, it introduces `left_join()` and `rbind()` for adding columns and rows, respectively. And for importing and exporting data, it introduces `read_csv()` and `write_csv()`, which make it possible to bring data into and out of R Studio. Along the way, we'll be exposed to some additional tricks, including the `-` (minus sign) notation for column names and functions like `rename()`, `str_remove()`, `relocate()`, and `reorder()`.
+We can also add value to a data set by reshaping it and by selectively combining it with other data. In so doing, we'll find the most value in data that might not already exist in R---and we might find it most useful to export it for some other use when we're done. For reshaping data, this lesson introduces `pivot_longer()` and `pivot_wider()`, which we'll combine with the functions from last week for some helpful workflows. For combining data, it introduces `left_join()` and `rbind()` for adding columns and rows, respectively. And for importing and exporting data, it introduces `read_csv()` and `write_csv()`, which make it possible to bring data into and out of R Studio. Along the way, we'll be exposed to some additional tricks, including the `-` (minus sign) notation for column names and functions like `rename()`, `str_remove()`, `relocate()`, and `reorder()`.
 
 Before doing anything, we need to load any packages.
 
@@ -327,61 +327,68 @@ Impressive turnout, Cameron Parish! Way to get out the vote!
 
 ## Binding rows
 
-Let's imagine we had nice summary information for the entire state in a simple, useful row, showing the percentage of statewide population each candidate earned:
+In looking through data like this, you might realize that there are rows missing. Say, for instance, a couple parishes haven't yet finished voting. When those votes come in, they'll probably report them in a table that looks similar to the table we've already received, perhaps even with the columns in a different order, determined by vote share.
 
 ```{r}
 #| message: false
 #| code-fold: true
-louisiana_population <- 
-  county_pops |> 
-  filter(STNAME == "Louisiana") |> 
-  select(parish = CTYNAME,
-         population = POPESTIMATE2020) |> 
-  filter(parish == "Louisiana")
 
-votes_statewide <- 
-  votes |> 
-  pivot_longer(-parish) |> 
-  select(-parish) |> 
-  group_by(name) |> 
-  summarize(value = sum(value)) |> 
-  mutate(parish = "Louisiana") |> 
-  left_join(louisiana_population) |> 
-  mutate(value = value/population) |> 
-  # In the next line we *could* preserve the original column order
-  # arrange(desc(value)) |> 
-  pivot_wider()
+# function to create a fictional parish randomized by data in the set
+fictional_parish <- function(df, imaginary) {
+  random_column_order <- 
+    colnames(df)[2:ncol(df)] |> 
+    sample(ncol(df)-1)
+  
+  random_numbers <- df[,2:ncol(df)] |> 
+    as.matrix() |> 
+    sample(ncol(df)-1) |> 
+    setNames(random_column_order) |> 
+    sort(decreasing = TRUE)
+  
+  data.frame(parish = imaginary,
+             value = random_numbers) |> 
+    rownames_to_column(var = "name") |> 
+    pivot_wider()
+}
+
+# create two fictional parishes
+votes_chinquapin <- fictional_parish(votes, "Chinquapin")
+votes_renard <- fictional_parish(votes, "Renard")
 ```
+
+Data from these parishes might look like this:
 
 ```{r}
-votes_statewide
+votes_chinquapin
+votes_renard
 ```
 
-Wouldn't it be nice to combine this row of data with our original parish-by-parish breakdown of all votes cast as a percentage of parish population? The `rbind()` function makes it easy to add a row in this way, as long as we have matching column names:
+Wouldn't it be nice to combine this row of data with our original voter data? The `rbind()` function makes it easy to add rows in this way, as long as we have matching column names in whatever order:
 
 ```{r}
-votes_population_la <- rbind(votes_statewide, votes_population)
+updated_votes <- 
+  rbind(votes, 
+        votes_chinquapin, 
+        votes_renard)
 
-votes_population_la
+updated_votes
 ```
 
-Even though columns were ordered differently in our two data sets, they were matched perfectly by their names. The first data set determined the order of columns in the result, and its rows come on top. Here's what it looks like to reverse the order:
+Our new parishes are added at the very bottom of the chart. We could either page through to get to see them, or we could use the `tail()` function to show the last few rows:
 
 ```{r}
-votes_population_la <- rbind(votes_population, votes_statewide)
-
-votes_population_la
+tail(updated_votes)
 ```
 
-This second version preserves the column order from `votes_population` and adds the row from `votes_statewide` at the bottom.
+Even though columns were ordered differently in our two data sets, they were matched perfectly by their names. The first data set determined the order of columns in the result, and its rows come on top.
 
 ## Writing a CSV file
 
 Lastly, we can export data in much the same way that we imported it:
 
 ```{r}
-write_csv(votes_population_la, 
-          file = "data/louisiana_votes_pop.csv")
+write_csv(updated_votes, 
+          file = "data/louisiana_votes_updated.csv")
 ```
 
 In this way, you can later use your CSV file in other tools, like ArcGIS.
@@ -396,6 +403,7 @@ votes_percentages |>
              x = `Kanye West`)) +
   geom_col()
 ```
+
 The parish names on the left are in alphabetical order starting at the bottom going up. We can reorder these pretty easily with the `reorder()` function. Here, we're reording strings in the the `parish` column by values in the `Kanye West` column:
 
 ```{r}
@@ -405,7 +413,8 @@ votes_percentages |>
   geom_col()
 ```
 
-Since we know the total number of votes in each parish, we can also color the bars by parish size. Who knows—it might reveal some trend!
+Since we know the total number of votes in each parish, we can also color the bars by parish size. Who knows---it might reveal some trend!
+
 ```{r}
 votes_percentages |> 
   ggplot(aes(y = reorder(parish, `Kanye West`), 
@@ -413,6 +422,7 @@ votes_percentages |>
              fill = total)) +
   geom_col()
 ```
+
 I guess it's kind of revealing that the parishes where Kanye earned the lowest share of votes tended to be smaller parishes, where fewer than 100,000 votes were cast. So we'll keep it.
 
 In the final step, we're going to add a little polish to the chart by adjusting the labels and theme and by making the chart a little taller.
@@ -458,4 +468,3 @@ votes_percentages |>
   theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank())
 ```
-
