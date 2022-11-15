@@ -1,14 +1,5 @@
 ---
 title: "Filtering, Transforming, and Summarizing Tables"
-format:
-  html:
-    code-link: true
-    toc: true
-    theme: [cosmo, custom.scss]
-    highlight-style: "atom-one"
-    number-sections: true
-    df-print: paged
-editor: visual
 ---
 
 ## Introduction

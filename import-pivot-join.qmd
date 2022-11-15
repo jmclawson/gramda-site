@@ -1,14 +1,5 @@
 ---
-title: "Importing, Reshaping, Combining, and Exporting Data Sets"
-format:
-  html:
-    code-link: true
-    toc: true
-    theme: [cosmo, custom.scss]
-    highlight-style: "atom-one"
-    number-sections: true
-    df-print: paged
-editor: visual
+title: "Importing, Pivoting, and Combining Data Sets"
 ---
 
 ## Intro and Getting Started
@@ -327,7 +318,7 @@ Impressive turnout, Cameron Parish! Way to get out the vote!
 
 ## Binding rows
 
-In looking through data like this, you might realize that there are rows missing. Say, for instance, a couple parishes haven't yet finished voting. When those votes come in, they'll probably report them in a table that looks similar to the table we've already received, perhaps even with the columns in a different order, determined by vote share.
+In looking through data like this, you might realize that there are rows missing. Say, for instance, a couple parishes haven't yet finished voting. When those votes come in, they'll probably be reported in tables that look similar to the one we already have, though their columns might be ordered by vote share.
 
 ```{r}
 #| message: false
@@ -363,7 +354,7 @@ votes_chinquapin
 votes_renard
 ```
 
-Wouldn't it be nice to combine this row of data with our original voter data? The `rbind()` function makes it easy to add rows in this way, as long as we have matching column names in whatever order:
+Wouldn't it be nice to combine these tables with our original voter data? The `rbind()` function makes it easy to add rows in this way, as long as we have matching column names in whatever order:
 
 ```{r}
 updated_votes <- 
@@ -428,6 +419,7 @@ I guess it's kind of revealing that the parishes where Kanye earned the lowest s
 In the final step, we're going to add a little polish to the chart by adjusting the labels and theme and by making the chart a little taller.
 
 ```{r}
+#| code-fold: true
 #| fig-height: 7
 
 votes_percentages |> 
@@ -438,15 +430,18 @@ votes_percentages |>
   
   # scale_x_continuous() lets me adjust the x-axis. Within
   # it, "labels" lets me format the number of the axis
-  # labels and setting "expand" to 0 lets me shrink the gap
-  # between labels and bars.
+  # labels. The scales package offers handy functions for
+  # formatting different kinds of numbers. On the next line, 
+  # setting "expand" to 0 lets me shrink the gap between 
+  # labels and bars.
   scale_x_continuous(
     labels = scales::label_percent(),
     expand = c(0,0)) +
   
   # scale_fill_continuous() lets me adjust the legend of a
   # "fill" aesthetic. Within it, "labels" lets me format the
-  # numbers used in the legend.
+  # numbers used in the legend, and the scales package helps
+  # in formatting the numbers to look better.
   scale_fill_continuous(
     labels = scales::label_comma()) +
   
@@ -459,8 +454,8 @@ votes_percentages |>
     x = "Kanye West's share of the vote",
     fill = "Total votes cast \nin each parish") + 
   
-  # I'm not a big fan of that default gray background, so
-  # theme_minimal() lets me choose a different theme.
+  # I'm not a big fan of that default gray background, and
+  # theme_minimal() lets me make it white.
   theme_minimal() +
   
   # Finally, I don't need the horizontal grid lines in the
