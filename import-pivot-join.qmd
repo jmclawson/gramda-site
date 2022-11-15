@@ -231,12 +231,42 @@ So far, we've been looking at voting in a realistic way. Only the voters who vot
 We can use `left_join()` to add more columns of data to our study. To understand how this might work, let's first pull in county-by-county population data from the U.S. Census. As before, we're using `read_csv()` to read the CSV file as a table in R.
 
 ```{r}
+#| code-fold: true
 #| message: false
-if(!file.exists("data/co-est2021-alldata.csv")) {
-  download.file(
-    url = "https://www2.census.gov/programs-surveys/popest/datasets/2020-2021/counties/totals/co-est2021-alldata.csv",
-    destfile = "data/co-est2021-alldata.csv")
+
+# Helper function to download data if it doesn't already exist locally
+get_if_needed <- function(
+    url, # Url to be downloaded (necessary)
+    filename = NULL, # destination filename (optional)
+    destdir = "data" # destination directory (optional)
+    ) {
+  
+  # If `filename` parameter is not set, it defaults to online file name.
+  if(is.null(filename)){
+    the_filename <- url |> str_extract("[a-z 0-9 \\- .]+csv")
+  } else {
+    the_filename <- filename
+  }
+  
+  # The `destdir` directory will be created if necessary
+  if(!dir.exists(destdir)){
+    dir.create(destdir)
+  }
+  
+  filepath <- file.path(destdir, the_filename)
+  
+  if(!file.exists(filepath)) {
+    download.file(url, destfile = filepath)
+  }
 }
+
+```
+
+```{r}
+#| message: false
+
+# Use a helpful function to download this data only once
+get_if_needed("https://www2.census.gov/programs-surveys/popest/datasets/2020-2021/counties/totals/co-est2021-alldata.csv")
 
 county_pops <- read_csv("data/co-est2021-alldata.csv")
 
