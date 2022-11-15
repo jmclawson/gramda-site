@@ -61,3 +61,10 @@ div.callout-header {
 #quarto-appendix.default {
   background-color: $white;
 }
+
+/* Improve browsing on a smaller device */
+@media (max-width: 991.98px) {
+    #quarto-content > * {
+         padding-top: 14px 
+    }
+}
