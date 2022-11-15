@@ -3,6 +3,7 @@ project:
 
 website:
   title: "Intro to DA"
+  favicon: favicon-big.png
   navbar:
     left:
       - href: index.qmd

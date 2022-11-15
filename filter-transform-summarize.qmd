@@ -23,7 +23,7 @@ When using the functionality made possible by one or two of these packages, you 
 ::: callout-note
 ## Tangent
 
-Hadley Wickham is one of the creators of all of these packages listed here: `ggplot2`, `dplyr`, and even the `tidyverse`. Because Wickham is from New Zealand, you might notice that British spellings are allowed (but not required) in many parts of the `tidyverse` landscape. Wickham lives in Houston and is currently the Chief Scientist at RStudio, which is soon changing its name to Posit.
+Hadley Wickham is one of the creators of all of these packages listed here: `ggplot2`, `dplyr`, and even the `tidyverse`. Because Wickham is from New Zealand, you might notice that British spellings are allowed (but not required) in many parts of the `tidyverse` landscape. Wickham lives in Houston and is the Chief Scientist at the company that makes RStudio.
 :::
 
 ## Getting started
