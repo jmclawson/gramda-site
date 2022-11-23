@@ -6,6 +6,10 @@ format:
     number-sections: false
 ---
 
+The world is full of data. From the record of annual rainfall to the spread of a virus, from the amount of money a person pays social security to the kind of attention they pay social media, from the shape and size of a penguin's beak to the route and weight of a shipping container, and from a shopper's patterns of frugality to a voter’s patterns of turnout---the potential ranges and kinds of data are limitless. They are also meaningless until they're interpreted. Businesses, healthcare providers, scientists, and governments depend on data analysts to clarify what the data show, to find connections among disparate pieces of information, and generally to introduce value by making sense of it all.
+
+This course will introduce students to processes of data analytics: data preparation, management, analysis, visualization, and communication. In completing data-driven projects, students will use industry-standard applications, they will demonstrate spatial analyses with GIS, and they will share reproducible analyses with R. In discussion with each other and the instructor, students will evaluate concerns of data ethics and privacy. Finally, in completing a major project, students will incorporate different strategies and tools of data analysis to present their findings.
+
 ## Links
 
 -   [Filtering, Transforming, and Summarizing Tables](filter-transform-summarize.qmd)

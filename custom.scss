@@ -1,11 +1,11 @@
 /*-- scss:defaults --*/
-$primary: #ECAA00;
+$primary: #EBA900;
 $secondary: #FF0000;
-$notwhite: lighten($primary, 47%);
-$white: lighten($notwhite, 50%);
+$notwhite: #FFF5DC; 
+$white: #FFFEFA;
 
-$body-bg: $notwhite;
-$code-block-bg: mix($notwhite, #efefef, 15%);
+$body-bg: $white;
+$code-block-bg: mix($white, #efefef, 15%);
 $code-bg: $code-block-bg;
 /*-- scss:rules --*/
 div.sourceCode:has(+ div.cell-output), div.sourceCode:has(+ div.cell-output-display) {
@@ -46,7 +46,7 @@ div.callout-header {
 
 .page-columns .content {
   background-color: $white;
-  border: 1px solid rgba(133,136,139,.65);
+  border: 0px solid rgba(133,136,139,.65);
   border-radius: 7px;
   padding: 1em;
 }
@@ -62,9 +62,17 @@ div.callout-header {
   background-color: $white;
 }
 
+#quarto-content > * {
+         padding-top: 1em; 
+    }
+
 /* Improve browsing on a smaller device */
 @media (max-width: 991.98px) {
     #quarto-content > * {
-         padding-top: 14px 
+         padding-top: 1em; 
     }
+}
+
+table.gt_table{
+  width: auto;
 }

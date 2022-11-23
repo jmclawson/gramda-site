@@ -6,8 +6,6 @@ website:
   favicon: favicon-big.png
   navbar:
     left:
-      - href: index.qmd
-        text: Home
       - text: "Slides"
         menu: 
           - href: slides-dplyr.qmd
@@ -24,7 +22,6 @@ website:
               text: "4. Importing, Pivoting, and Combining Data Sets"
             - href: exam-review.qmd
               text: "Unit 3 Exam Review"
-      - about.qmd
   page-footer: "Copyright 2022, James Clawson" 
   repo-url: https://github.com/jmclawson/gramda-site
   repo-actions: [source]
@@ -36,6 +33,7 @@ format:
     code-link: true
     css: styles.css
     toc: true
+    toc-location: left
     number-sections: true
     df-print: paged
 

@@ -1,5 +1,7 @@
 ---
 title: "Importing, Pivoting, and Combining Data Sets"
+citation-location: margin
+reference-location: margin
 ---
 
 ## Intro and Getting Started
@@ -210,6 +212,7 @@ votes |>
 
 A 2.3% difference is much more indicative of the difference in voter preference than the huge number 15,000 seems to imply. We find this percentage by pulling out a calculator and dividing the candidate's votes by the number of total votes. But why not work smarter? Since R can be our calculator, let's take the opportunity to convert votes from absolute values to a percentage of the vote total. While we're at it, let's apply it to the whole data set and save it into a new object with a name that reflects that we're showing the percentages of votes:
 
+::::{#pivotcode}
 ```{r}
 votes_percentages <- 
   votes |> 
@@ -221,6 +224,7 @@ votes_percentages <-
 
 votes_percentages
 ```
+::::
 
 With these new numbers, we're able to compare candidates' performance directly across each parish while accounting for total votes.
 
@@ -448,9 +452,16 @@ I guess it's kind of revealing that the parishes where Kanye earned the lowest s
 
 In the final step, we're going to add a little polish to the chart by adjusting the labels and theme and by making the chart a little taller.
 
+::::{#kanyevotes}
 ```{r}
 #| code-fold: true
 #| fig-height: 7
+
+#| fig-height: 7
+  # Adding fig-height or fig-width to the top of a code 
+  # chunk lets you adjust the output size of a figure
+  # resulting from ggplot. You'll have to play around 
+  # with numbers to find something you like.
 
 votes_percentages |> 
   ggplot(aes(y = reorder(parish, `Kanye West`), 
@@ -493,3 +504,4 @@ votes_percentages |>
   theme(panel.grid.major.y = element_blank(),
         panel.grid.minor.y = element_blank())
 ```
+::::

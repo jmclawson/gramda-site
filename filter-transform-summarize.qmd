@@ -85,12 +85,10 @@ Suppose we are diehard Gramblinites, and we really only care about the games tha
 
 Most of these logical tests are very simple. For example, we can imagine that `attendance > 3000` is useful to find the games where there are more than 3,000 fans listed in the `attendance` column as having been at the game. Similarly, if we want to show only those games where the team listed in the `team` column lost to their `opponent`, then we can find the rows with `team_score < opponent_score`. And if we want to show only those columns that are played as away games, we can look for `team_venue == "Away"` to match that string.
 
-::: callout-important
 Notice that we use double equals signs `==` for a logical test. The single equals sign is already used to indicate assignment within a function, like `aes(x = team_score)`. It's easy to mistakenly use the single where you need the double---but it's also easy to fix it when you realize your mistake.
-:::
 
 ::: callout-tip
-There are lots of different logical tests:
+Here are some common logical tests:
 
 -   `x == y` tests whether `x` is equal to `y`
 
@@ -113,13 +111,13 @@ The first argument in the `filter()` function should be the name of the data set
 filter(schedule, team == "Grambling")
 ```
 
-The resulting tibble doesn't have any rows! In theory this should work. But it doesn't work because "Grambling" is actually coded as something else in our data set. The `str_detect()` function is very useful for building a partial match in any logical search involving character data, letting us look for a needle in a haystack. It expects two arguments: the first is the column in which we're looking (the haystack), and the second is string that we're trying to match (the needle):
+The resulting tibble doesn't have any rows! This code seems like it should work, but it doesn't because "Grambling" is actually coded as something else in our data set. The `str_detect()` function is very useful for building a partial match in any logical search involving character data, letting us look for a needle in a haystack. It expects two arguments: the first is the column in which we're looking (the haystack), and the second is string that we're trying to match (the needle). So we ask filter to look in the `team` column for any rows that include the text "Grambling":
 
 ```{r}
 filter(schedule, str_detect(team, "Grambling"))
 ```
 
-Here, we can see that "Grambling" has actually been coded as "Grambling State" in the data set. Good to know! Now our schedule has been shortened down to the 53 rows we care about.
+The results show that "Grambling" has actually been coded as "Grambling State" in the data set. Good to know! Now our schedule has been shortened down to the 53 rows we care about.
 
 We can actually group multiple filters into a `filter()` command by separating them with commas. If we just wanted Grambling's 2019 season, we might try to call it like this:
 
@@ -128,7 +126,7 @@ We can actually group multiple filters into a `filter()` command by separating t
 filter(schedule, str_detect(team, "Grambling"), season == "2019")
 ```
 
-But this won't work at this stage because we already got rid of the `season` column. We'll come back to this problem in the next section.
+It won't work at this stage because we already got rid of the `season` column. We'll come back to this problem in the next section.
 
 Don't forget that we haven't actually changed anything. If we'd like to save our work into an object, we have to use the assignment arrow and give it a name:
 
@@ -200,9 +198,7 @@ schedule_gram2019 <-
 Notice here that I've started back at the beginning and documented each step. Doing so isn't strictly *necessary*. You could, after all, write `schedule_gram2019 <- arrange(schedule_gram2019, date)`. But saving intermediately isn't needed when we can just go back to our old code to add a step.
 
 ::: callout-tip
-Everybody builds up their data transformations one step at a time. It's okay to go back and edit code to add more to it.
-
-To figure out how to get where you'd like to go, first break things down into pieces. Once you get one step working the way it should, then your next task is to figure out the next step. In this way, you earn yourself lots of little victories along the way---and a giant victory at the end!
+Everybody builds up their workflows one step at a time. It's okay to go back and edit code to add more to it. To figure out how to get where you'd like to go, first break things down into pieces. Once you get one step working the way it should, your next task is to figure out the next step. In this way, you earn yourself lots of little victories along the way---and a giant victory at the end!
 :::
 
 ## Changing the data set with mutations
@@ -503,6 +499,7 @@ swac |>
   # temptation, save this step for last!
   
   tab_options(
+    table.background.color = "#FFFFFF00",
     row_group.border.top.width = px(3),
     row_group.border.top.color = "black",
     row_group.border.bottom.color = "black",
