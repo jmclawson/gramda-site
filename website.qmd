@@ -1,0 +1,109 @@
+---
+title: "Creating an Online Portfolio"
+editor: visual
+---
+
+It can be a good idea to have a web presence to show future employers the kinds of things you can do. Luckily, it's really easy to make a website with some of the tools we've already been using. We've seen how Quarto can be used to create web pages, Microsoft Word documents, and slides. Using it to create an entire website isn't much harder. And getting the website hosted online takes only a few steps beyond that.
+
+## Fork a GitHub repository
+
+There are a few options for hosting a free website made with Quarto, but I'm most familiar with GitHub Pages. As a bonus, hosting on GitHub offers a person experience using `git`, too.
+
+If needed, go here to sign up for an account at GitHub: [github.com/join](https://github.com/join). At this stage, it is important to choose a username that is professional seeming and won't eventually be embarrassing in some other context. Mine is `jmclawson`, derived from my first initial, middle initial, and last name.
+
+After signing in to GitHub, go to the following repository: [github.com/jmclawson/jmclawson.github.io](https://github.com/jmclawson/jmclawson.github.io). Once there, "fork" the repository by clicking the "Fork" button at the top right of the page and choosing "Create a new fork."
+
+![](images/gh-fork.png){style="border: 1px solid black;" fig-align="center"}
+
+On the next screen, change the name. It should reflect your username with the following pattern:
+
+> `username.github.io`
+
+Mine would be `jmclawson.github.io` as shown in the image below:
+
+![](images/github-fork-name.png){style="border: 1px solid black;" fig-align="center"}
+
+Optionally add a description, and then click the "Create fork" button at the bottom.
+
+## Publish the pages
+
+Your new repository will look a little different because yours is a fork, but you'll see something like the following. Click the "Settings" in the upper right:
+
+![](images/github-repo.png){style="border: 1px solid black;" fig-align="center"}
+
+From there click on "Pages." Under "Branch," make sure it says "main" and "/docs" or change it if needed:
+
+![](images/github-settings-pages-docs.png){style="border: 1px solid black;" fig-align="center"}
+
+Your website is now live! Click the "Visit site" button above to see what it looks like. It's nothing special just yet, but we'll use Quarto to spruce it up.
+
+## Make an RStudio project from your GitHub repository
+
+Click on the name of your repo at the top of the screen. From there, look for the green "Code" button, click it, and then copy the URL in the box; the icon of overlapping squares will copy it to your clipboard.
+
+![](images/github-repo-url.png){style="border: 1px solid black;" fig-align="center"}
+
+Next, go to [posit.cloud](https://posit.cloud) and make sure you're in "Your Workspace." (Our class workspace will soon be archived!) Click the blue "New Project" button and then choose "New Project from Git Repository."
+
+![](images/posit-project-git-repo.png){style="border: 1px solid black;" fig-align="center"}
+
+In the popup box, paste the URL you copied from GitHub and click OK.
+
+![](images/posit-project-git-url-ok.png){style="border: 1px solid black;" fig-align="center"}
+
+Posit Cloud will create a new project for you and open it in RStudio. It'll look something like this:
+
+![](images/posit-gh-project.png){style="border: 1px solid black;" fig-align="center"}
+
+Five things are important to note here, from bottom to top:
+
+1.  In the Files pane, "**index.qmd**" contains the home page of the site. It should *always* be named "index.qmd" because home pages are always named "index."
+2.  Also in the Files pane is "**about.qmd**" which could in theory be called anything. We can also add other web pages by adding more Quarto files alongside it. For now, keep things simple, and keep that file name.
+3.  At the top of the Files pane is "**\_quarto.yml**" which defines some characteristics of the website, like its name and theme. This file should *always* be named "\_quarto.yml" so Quarto knows where to find it when rendering the website.
+4.  Up with the Environment pane is a new tab called "**Build**." Inside it is a button for rendering the entire website. We'll use it soon.
+5.  To the right of that is a tab called "**Git**." After we edit and render things, we'll use buttons in the Git tab to synchronize changes to GitHub. It'll be the last step in RStudio.
+
+## Personalize it
+
+### `_quarto.yml`
+
+Open "\_quarto.yml" and get started personalizing things. For instance, you probably want to change the name of your website from "sample_website" to something more reasonable, like your name. Click on "\_quarto.yml" in the Files pane to open it in the Source pane. Notice that there are some options in here, including one called `title`. Select "`sample_website`" and change it to your name. (Keep the quotation marks there!) This file is also where you can set defaults like the site theme. When you're finished, hit save.
+
+### `index.qmd`
+
+Modify the "index.qmd" page to show whatever you want to be shown as your home page. This might be a good page to insert links to your portfolio of projects you're proud of. (You can create new pages below, and add links here.) You can do anything here you can do in Quarto, including writing text, adding headers, and even including R code and visualizations. Save the page when you're done.
+
+### `about.qmd`
+
+Modify the "about.qmd" page however you like. Perhaps it might be a good idea to add a brief paragraph about yourself here, along with your professional interests. If you're feeling really good about things, add a miniature resume, including your major, and even a photo.
+
+### Any other page?
+
+If you'd like to add any other page, use the menu options to create a new Quarto document. Keep the header as simple as your "about.qmd" and your "index.qmd" headers. Really, all you need is the title. Save the file using a sensible, short name. Add a link to it from "index.qmd" if you like. Additionally, you can add this page to your menu bar by going into "\_quarto.yml", finding the line that says "about.qmd", and adding it below.
+
+## Build the website
+
+In the Build pane, click "Render Website." It'll probably give you an error that you need to have `rmarkdown` installed, so go to the Console pane and enter this code to install that package: `install.packages("rmarkdown")`
+
+When it's done doing things, click "Render Website" one more time. This time, it'll work! When it does, it'll show you a preview of how things look with your updates. Notice that the top-left corner now has your name in it, instead of "sample_website", and the Home page and About page show the things you've changed.
+
+## Synchronize with GitHub
+
+We want more than just a private preview. To publish things publicly, click on the Git tab and choose the "Commit" button. A window will pop up:
+
+![](images/git-commit.png){style="border: 1px solid black;" fig-align="center"}
+
+Follow these four steps:
+
+1.  The top left box shows all the files you've changed. Put a checkmark in all the boxes beside these files to indicate that you want to synchronize them with GitHub.
+2.  The top right pane needs you to add a little note indicating what changes you've made. Write something here. This is helpful for you in the future, and it doesn't have to be very long.
+3.  Click the "Commit" button. This checks in your changes and queues them up for syncing.
+4.  Click the "Push" button. This will send the changes up to GitHub.
+
+## Check it out
+
+Things should now be updated online, in the public, and for everyone to see. Your website address is `https://username.github.io` (where "`username`" is your GitHub username).
+
+Nobody is going to find your website unless they know to look for it. This is a good thing! At the start, you won't have much on it. Additionally, you will want to strive for a level of polish that is very high. The internet can be a cruel place, so make sure you can stand by your work. Proofread it, and then proofread it, and then ask a family member to proofread it again.
+
+When you are ready to share it, consider publicizing it on social media or adding it to the signature line of your email. When you apply for a job related to data analytics, the application form may even ask for your website. You can be proud to know you've been building a portfolio for years!

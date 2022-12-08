@@ -99,8 +99,8 @@ schedule
 
 ## the `filter()` function
 
-::: {.nonincremental}
--  `filter(`data`,` logical test(s)`)`
+::: nonincremental
+-   `filter(`data`,` logical test(s)`)`
 
 ```{r}
 filter(schedule, team == "Grambling")
@@ -109,8 +109,8 @@ filter(schedule, team == "Grambling")
 
 . . .
 
-::: {.nonincremental}
-- oops...
+::: nonincremental
+-   oops...
 
 ```{r}
 filter(schedule, str_detect(team, "Grambling"))
@@ -151,35 +151,36 @@ There's a keyboard shortcut in RStudio! Enable it in Global Options, under Code.
 
 ## the `arrange()` function
 
-:::: columns
-:::: {.column width="50%"}
-::: {.nonincremental}
-- put things in ascending order
+::: columns
+::: {.column width="50%"}
+::: nonincremental
+-   put things in ascending order
 
 ```{r}
 schedule_gram2019 |> 
   arrange(date)
 ```
 :::
-::::
+:::
 
-:::: {.column width="50%"}
-::: {.nonincremental}
-- or reverse the order with `desc()`
+::: {.column width="50%"}
+::: nonincremental
+-   or reverse the order with `desc()`
 
 ```{r}
 schedule_gram2019 |> 
   arrange(desc(date))
 ```
 :::
-::::
-:::: 
+:::
+:::
 
 # Changing the data set with mutations
 
 ## the `mutate()` function
-::: {.nonincremental}
--   `mutate(`data`, `new_column` = `definition`)`
+
+::: nonincremental
+-   `mutate(`data`,`new_column`=`definition`)`
 
 ```{r}
 #| code-line-numbers: "|5"
@@ -195,7 +196,7 @@ schedule_gram2019 <-
 
 . . .
 
-::: {.nonincremental}
+::: nonincremental
 With these results:
 
 ```{r}
@@ -217,12 +218,12 @@ swac |>
   arrange(date)
 ```
 
-# Summarizing data {auto-animate=true}
+# Summarizing data {auto-animate="true"}
 
 ## the `summarize()` function
 
-::: {.nonincremental}
--   `summarize(`data`, `new_column` = `definition`)`
+::: nonincremental
+-   `summarize(`data`,`new_column`=`definition`)`
 :::
 
 . . .
@@ -239,12 +240,10 @@ swac |>
   arrange(date) |> 
   summarize(wins = sum(win))
 ```
+
 . . .
 
--1- `sum()` of logical vector;<br> 
--2- `summarize()` strips all other columns<br>
--3- `summarize()` leaves just one row
-
+-1- `sum()` of logical vector;<br> -2- `summarize()` strips all other columns<br> -3- `summarize()` leaves just one row
 
 ## Multiple summaries at once
 
@@ -269,9 +268,9 @@ swac |>
 
 ## the `group_by()` function
 
-- `group_by(`data`, `groups`)`
-- especially good before `summarize()`
-- allows for group-level summaries
+-   `group_by(`data`,`groups`)`
+-   especially good before `summarize()`
+-   allows for group-level summaries
 
 ## `group_by()` in practice
 
@@ -291,9 +290,11 @@ swac |>
 ```
 
 ## correcting for missing values
-::: {.nonincremental}
-- `na.rm = TRUE`
+
+::: nonincremental
+-   `na.rm = TRUE`
 :::
+
 . . .
 
 ```{r}
@@ -338,5 +339,3 @@ swac |>
             ptrange_max = max(pointrange, 
                               na.rm = TRUE))
 ```
-
-

@@ -3,6 +3,7 @@ title: "Introduction to Data Analytics"
 format:
   html:
     toc: false
+    toc-location: body
     number-sections: false
 ---
 
@@ -12,6 +13,7 @@ This course will introduce students to processes of data analytics: data prepara
 
 ## Links
 
--   [Filtering, Transforming, and Summarizing Tables](filter-transform-summarize.qmd)
--   [Importing, Pivoting, and Combining Data Sets](import-pivot-join.qmd)
--   [In-Class Review for Exam 3](exam-review.qmd)
+- [Filtering, Transforming, and Summarizing Tables](filter-transform-summarize.qmd)
+- [Importing, Pivoting, and Combining Data Sets](import-pivot-join.qmd)
+- [In-Class Review for Exam 3](exam-review.qmd)
+- [Publishing a Website](website.qmd)
