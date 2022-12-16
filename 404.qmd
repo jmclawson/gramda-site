@@ -1,0 +1,9 @@
+---
+title: Page Not Found
+---
+
+{{< fa face-frown >}} 
+
+The page you're trying to go to isn't there. It may have been moved or renamed.
+
+Try using the search function above to find the page's new location.

@@ -1,0 +1,301 @@
+---
+title: "Cleaning EPA Data on Oil Spills"
+format:
+  html:
+    toc: true
+    toc-location: left
+    number-sections: true
+---
+
+## Starting out
+
+Start by loading packages and helper scripts:
+
+```{r}
+#| message: false
+library(tidyverse)
+library(readxl)
+devtools::source_gist("https://gist.github.com/jmclawson/65899e2de6bfee692b08141a98422240")
+```
+
+Then make a table of years and links:
+
+```{r}
+years_links <- 
+  rbind(
+    data.frame(
+      year = 1990:1999,
+      link = paste0("https://nrc.uscg.mil/FOIAFiles/CY", 90:99, ".xlsx")
+      ),
+    data.frame(
+      year = 2000:2009,
+      link = paste0("https://nrc.uscg.mil/FOIAFiles/CY0", 0:9, ".xlsx")
+      ),
+    data.frame(
+      year = 2010:2022,
+      link = paste0("https://nrc.uscg.mil/FOIAFiles/CY", 10:22, ".xlsx")
+      ))
+```
+
+Lastly, download data. Just working with 2019 for now.
+
+```{r}
+years_links |> 
+  filter(year == 2019) |> 
+  pull(link) |> 
+  get_if_needed()
+```
+
+## Reading data
+
+```{r}
+#| warning: false
+spills <- list()
+
+# there are 10 worksheets, so read each
+for(i in 1:10){
+  spills[[i]] <- "data/CY19.xlsx" |> 
+  read_excel(sheet = i)
+}
+
+names(spills) <- c("CALLS", "INCIDENT COMMONS", "INCIDENT DETAILS", "INCIDENTS", "MATERIAL INVOLVED", "MATERIAL INVOLVED CR", "TRAINS DETAIL", "DERAILED UNITS", "VESSELS DETAIL", "MOBILE DETAILS") |> 
+  str_replace_all(" ", "_")
+```
+
+## Cleaning steps
+
+### Remove train collisions
+
+It's unclear if this step means to remove incidents in which two trains collided into each other or those in which a collision merely involved a train (for instance, a train hitting a vehicle). This code addresses the second point, but it could be modified to handle both.
+
+```{r}
+# find SEQNOS for collisions
+train_collisions <- 
+  spills$INCIDENT_COMMONS |> 
+  filter(
+    DESCRIPTION_OF_INCIDENT |> 
+      str_detect("COLLISION"), 
+    TYPE_OF_INCIDENT |> 
+      str_detect("RAILROAD")) |> 
+  # next line limits to collisions involving multiple trains
+  # filter(str_detect(DESCRIPTION_OF_INCIDENT,"TRAINS")|str_detect(DESCRIPTION_OF_INCIDENT,"ANOTHER TRAIN")|str_detect(DESCRIPTION_OF_INCIDENT,"SECOND TRAIN")) |>  
+  pull(SEQNOS)
+
+# combine all of the data frames into one,
+# and then remove collisions
+spills_df <- spills |> 
+  reduce(full_join, by = "SEQNOS") |> 
+  filter(!SEQNOS %in% train_collisions)
+
+# export it
+write_csv(spills_df, 
+      "spills_2019.csv")
+
+# show the first few rows
+head(spills_df)
+```
+
+The resulting file can be downloaded here: [spills_2019.csv](spills_2019.csv)
+
+### Identifying quantities
+
+#### By state
+
+I'm guessing "Identifying quantities" means by state, so here goes.
+
+```{r}
+# get counts by state
+spills_states <- spills_df |> 
+  select(SEQNOS,
+         state = RESPONSIBLE_STATE) |> 
+  distinct() |> 
+  group_by(state) |> 
+  summarize(spill_count = n()) |> 
+  arrange(desc(spill_count)) |> 
+  filter(
+    # remove empty states
+    !state %in% c("XX", "X", "ZZ", "85"),
+    # remove territories / foreign parts?
+    !state %in% c("AS", "AX", "BC", "CN", 
+                  "GU", "MH", "MX", "NI", 
+                  "NO", "ON", "PR", "UK", 
+                  "VI"),
+    !is.na(state))
+
+# export it
+write_csv(spills_states, 
+          "spills_2019_states.csv")
+
+# show the first few rows
+head(spills_states)
+```
+
+The resulting file can be downloaded here: [spills_2019_states.csv](spills_2019_states.csv)
+
+#### By ZIP code
+
+In case it means by ZIP code, here's how I'd do it:
+
+```{r}
+# get counts per zipcode
+spills_zips <- spills_df |> 
+  select(SEQNOS, zipcode = RESPONSIBLE_ZIP) |> 
+  distinct() |> 
+  mutate(zipcode = as.character(zipcode)) |> 
+  filter(!is.na(zipcode)) |> 
+  group_by(zipcode) |> 
+  summarize(spill_count = n()) |> 
+  arrange(desc(spill_count))
+
+# export it
+write_csv(spills_zips, 
+          "spills_2019_zips.csv")
+
+# show the first few rows
+head(spills_zips)
+```
+
+The resulting file can be downloaded here: [spills_2019_zips.csv](spills_2019_zips.csv)
+
+### Geolocating
+
+#### Simple geolocating by zip code
+
+The `zipcodeR` package can't find every zip code, but it gets pretty far in adding latitude and longitude.
+
+```{r}
+library(zipcodeR)
+# That package is poorly written, so we need the next step
+zip_code_db <- zipcodeR::zip_code_db
+
+# look up location
+spills_geo <- 
+  geocode_zip(spills_zips$zipcode) |> 
+  left_join(spills_zips) |> 
+  relocate(spill_count, .after = zipcode) |> 
+  arrange(desc(spill_count))
+
+# export it
+write_csv(spills_geo, 
+          "spills_2019_geo.csv")
+
+# show the first few rows
+head(spills_geo)
+```
+
+The resulting file can be downloaded here: [spills_2019_geo.csv](spills_2019_geo.csv)
+
+#### Enriched demographic data
+
+I have some questions about the demographic data, including its provenance and when it was last updated, but I think these questions are actually documented online.
+
+```{r}
+# add more data
+spills_dem <- 
+  reverse_zipcode(spills_geo$zipcode) |> 
+  left_join(spills_zips) |> 
+  relocate(spill_count, .after = zipcode) |> 
+  arrange(desc(spill_count))
+
+# export it
+write_csv(spills_dem, 
+          "spills_2019_dem.csv")
+
+# show the first few rows
+head(spills_dem)
+```
+
+The resulting file can be downloaded here: [spills_2019_dem.csv](spills_2019_dem.csv)
+
+## Visualizing
+
+### Histogram
+
+Chart the number of spills in each zip code against its median income.
+
+```{r}
+#| message: false
+#| warning: false
+spills_all <- spills_df |> 
+  select(SEQNOS, zipcode = RESPONSIBLE_ZIP) |> 
+  distinct() |> 
+  mutate(zipcode = as.character(zipcode)) |> 
+  filter(!is.na(zipcode))
+
+spills_all$zipcode |> 
+  reverse_zipcode() |> 
+  left_join(spills_all) |>
+  ggplot() +
+  geom_histogram(
+    aes(x = median_household_income)) +
+  scale_x_continuous(
+    labels = scales::label_dollar()) +
+  theme_minimal()
+```
+
+### Mapping
+
+Maps can be made in R or any other tool.
+
+```{r}
+#| message: false
+library(maps)
+us_states <- map_data("state")
+
+ggplot(
+  us_states,
+  aes(x = long, 
+      y = lat)) + 
+  geom_polygon(
+    aes(group = group),
+    fill = "white",
+    color = "darkgray") +
+  geom_point(
+    data = spills_dem |> 
+      rename(long = lng) |> 
+      filter(!state %in% c("AK", "HI")),
+    aes(size = spill_count,
+        color = spill_count),
+    alpha = 0.35) +
+  coord_map(
+    projection = "albers",
+    lat0 = 39,
+    lat1=45) +
+  scale_color_viridis_b(direction = 1,
+                        option = "H") +
+  scale_size_continuous(
+    breaks = c(300, 200, 100)) +
+  theme_minimal()
+```
+
+Similarly, we can focus on Louisiana:
+
+```{r}
+la_map <- map_data("county") |> 
+  filter(region == "louisiana")
+
+ggplot(
+  la_map,
+  aes(x = long, 
+      y = lat)) + 
+  geom_polygon(
+    aes(group = group),
+    fill = "white",
+    color = "darkgray") +
+  geom_point(
+    data = spills_dem |> 
+      rename(long = lng) |> 
+      filter(state %in% c("LA")),
+    aes(size = spill_count,
+        color = spill_count),
+    alpha = 0.6) +
+  coord_map(
+    projection = "albers",
+    lat0 = 39,
+    lat1=45) +
+  scale_color_viridis_b(direction = 1, 
+                        option = "H") +
+  scale_size_continuous(
+    breaks = c(60, 40, 20)) +
+  theme_minimal()
+```

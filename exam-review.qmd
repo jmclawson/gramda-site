@@ -1,5 +1,10 @@
 ---
 title: "Unit 3 Exam Review"
+format:
+  html:
+    toc: true
+    toc-location: left
+    number-sections: true
 ---
 
 In class on November 14, students identified which parts of unit 3 they wanted to go over more. We spent the class period focusing on these details, as shown in the resulting file below.

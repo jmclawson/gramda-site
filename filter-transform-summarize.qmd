@@ -1,5 +1,10 @@
 ---
 title: "Filtering, Transforming, and Summarizing Tables"
+format:
+  html:
+    toc: true
+    toc-location: left
+    number-sections: true
 ---
 
 ## Introduction

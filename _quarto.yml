@@ -1,15 +1,20 @@
 project:
   type: website
+  resources: 
+    - ".htaccess"
+    - "mark.R"
 
 website:
   title: "Intro to DA"
-  favicon: favicon-big.png
+  site-path: "/gramda/"
+  site-url: "https://jmclawson.net/gramda/"
+  favicon: images/ranking-star-solid.png
   navbar:
-    left:
-      - text: "Slides"
-        menu: 
-          - href: slides-dplyr.qmd
-            text: Filtering, Transforming, and Summarizing
+    logo: images/ranking-star-solid.png
+    left: 
+      - syllabus.qmd
+      - overview.qmd
+    right:
       - text: "Course Units"
         menu: 
             - href: intro.qmd
@@ -22,19 +27,24 @@ website:
               text: "4. Importing, Pivoting, and Combining Data Sets"
             - href: exam-review.qmd
               text: "Unit 3 Exam Review"
+      - text: "Slides"
+        menu: 
+          - href: slides-dplyr.qmd
+            text: Filtering, Transforming, and Summarizing
+      - about.qmd
   page-footer: "Copyright 2022, James Clawson" 
   repo-url: https://github.com/jmclawson/gramda-site
   repo-actions: [source]
 
 format:
   html:
-    theme: [cosmo, custom.scss]
+    theme: 
+      light: [cosmo, custom.scss]
+      dark: [cosmo, custom-dark.scss]
     highlight-style: "atom-one"
     code-link: true
     css: styles.css
-    toc: true
-    toc-location: left
-    number-sections: true
+    toc-location: body
     df-print: paged
 
 editor: visual

@@ -1,13 +1,25 @@
 /*-- scss:defaults --*/
-$primary: #EBA900;
+$brightyellow: #EBA900;
 $secondary: #FF0000;
 $notwhite: #FFF5DC; 
 $white: #FFFEFA;
+$blackyellow: #402500;
+$darkblackyellow: #151000;
 
-$body-bg: $white;
-$code-block-bg: mix($white, #efefef, 15%);
+$primary: $blackyellow;
+$black: $darkblackyellow;
+
+$link-color: $brightyellow;
+$body-bg: $black;
+$code-block-bg: mix($black, #ffffff, 15%);
 $code-bg: $code-block-bg;
+$body-color: $white;
+
 /*-- scss:rules --*/
+img.navbar-logo {
+  filter: invert(100%);
+}
+
 div.sourceCode:has(+ div.cell-output), div.sourceCode:has(+ div.cell-output-display) {
   border-radius: 7px 7px 0 0;
   margin-bottom: 0px;
@@ -22,13 +34,6 @@ div.sourceCode, div.sourceCode:has(+ div.cell-output-display p img){
   border: 1px solid rgba(133,136,139,.65);
   border-top: 0px;
   border-radius: 0 0 7px 7px;
-  background-color: lighten(#282a36, 78%);
-  background-color: #fdfdfd;
-}
-
-details + .cell-output pre code, details + div.cell-output-display div.pagedtable-wrapper {
-  border: 1px solid rgba(133,136,139,.65);
-  border-radius: 7px;
   background-color: lighten(#282a36, 78%);
   background-color: #fdfdfd;
 }
@@ -52,7 +57,7 @@ div.callout-header {
 }
 
 .page-columns .content {
-  background-color: $white;
+  background-color: $black;
   border: 0px solid rgba(133,136,139,.65);
   border-radius: 7px;
   padding: 1em;
@@ -66,7 +71,7 @@ div.callout-header {
 }
 
 #quarto-appendix.default {
-  background-color: $white;
+  background-color: $black;
 }
 
 #quarto-content > * {
@@ -80,6 +85,11 @@ div.callout-header {
     }
 }
 
-table.gt_table{
-  width: auto;
+nav.navbar {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.navbar-dark .navbar-brand, .navbar-dark .navbar-brand .nav-link, .nav-link {
+  color: $white;
 }

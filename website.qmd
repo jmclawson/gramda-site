@@ -1,6 +1,10 @@
 ---
 title: "Creating an Online Portfolio"
-editor: visual
+format:
+  html:
+    toc: true
+    toc-location: left
+    number-sections: true
 ---
 
 It can be a good idea to have a web presence to show future employers the kinds of things you can do. Luckily, it's really easy to make a website with some of the tools we've already been using. We've seen how Quarto can be used to create web pages, Microsoft Word documents, and slides. Using it to create an entire website isn't much harder. And getting the website hosted online takes only a few steps beyond that.

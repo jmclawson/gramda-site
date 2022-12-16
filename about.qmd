@@ -3,10 +3,11 @@ title: "About"
 format:
   html:
     toc: false
+    toc-location: body
+    number-sections: false
 ---
 
-About this site
+## Acknowledgments and Attributions
 
-```{r}
-1 + 1
-```
+{{< fa ranking-star >}} Iconography from [Font Awesome](https://fontawesome.com/icons/ranking-star?s=solid&f=classic).
+
